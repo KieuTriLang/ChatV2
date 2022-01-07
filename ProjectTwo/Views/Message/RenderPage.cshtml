@@ -1,0 +1,67 @@
+﻿@model ProjectTwo.Models.ManageDbModels.Group
+<section class="page @Model.GroupId @ViewBag.Active">
+    <input type="hidden" name="groupId" id="groupId" value="@Model.GroupId" />
+    <div class="header-chat">
+        <div class="image">
+            @if (Model.GroupImg != null)
+            {
+                <img src="@Model.GroupImg" />
+            }
+            else
+            {
+                @Model.GroupName.Substring(0, 2);
+            }
+        </div>
+        <span class="tooltip">@Model.GroupName</span>
+    </div>
+    <div class="content-chat">
+
+    </div>
+    <div class="options">
+        <div class="edit-group">
+            <i class="uil uil-pen"></i>
+            <form class="form-edit">
+                <input type="text" id="nameGroup" value="@Model.GroupName" autocomplete="off"/>
+                <label for="@Model.GroupId" class="image">
+                    @if (Model.GroupImg != null)
+                    {
+                        <img src="@Model.GroupImg" />
+                    }
+                    else
+                    {
+                        @Model.GroupName.Substring(0, 2);
+                    }
+                </label>
+                <input type="hidden" id="imageData" />
+                <input type="file" id="@Model.GroupId" style="display:none" class="img-group"/>
+                <i class="uil uil-check btn-update"></i>
+                @*<i class="uil uil-spinner"></i>*@
+            </form>
+        </div>
+        <div class="group">
+            <i class="uil uil-users-alt"></i>
+            <ul class="members">
+                <li class="member-item add-member"><i class="uil uil-plus"></i>Add</li>
+                @foreach (var member in Model.Members)
+                {
+                    <li class="member-item">
+                        <div class="image">
+                            @if (member.Avatar != null)
+                            {
+                                <img src="@member.Avatar" />
+                            }
+                            else
+                            {
+                                @member.UserName.Substring(0, 2);
+                            }
+                        </div>
+                        <span class="tooltip">@member.UserName</span>
+                    </li>
+                }
+
+            </ul>
+        </div>
+
+        <i class="uil uil-sign-out-alt"></i>
+    </div>
+</section>
