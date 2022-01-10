@@ -133,6 +133,27 @@ namespace ProjectTwo.Controllers
             }
             return false;
         }
+
+        [HttpPost]
+        public bool LeaveGroup(string groupId)
+        {
+            Group group = _db.Groups.Find(groupId);
+            if(group != null)
+            {
+                if(group.Members.Count() == 1)
+                {
+                    RemoveToGroup(groupId, User.Identity.GetUserId());
+                    _db.Groups.Remove(group);
+                    _db.SaveChanges();
+                }
+                else
+                {
+                    RemoveToGroup(groupId, User.Identity.GetUserId());
+                }
+                    return true;
+            }
+            return false;
+        }
         
         [HttpPost]
         public bool SaveMessage(MessageVM info)
@@ -159,14 +180,52 @@ namespace ProjectTwo.Controllers
             }            
             return false;
         }
+        [HttpPost]
+        public string SaveImage(MessageVM info)
+        {
+            if (info != null && info.GroupId != null)
+            {
+                Message message = new Message()
+                {
+                    Content = info.Content,
+                    ImageCode = RandomString(12),
+                    When = Convert.ToDateTime(info.When),
+                    Group = _db.Groups.Find(info.GroupId),
+                    Sender = _db.Users.Find(info.SenderId)
+                };
+                try
+                {
+                    _db.Messages.Add(message);
+                    _db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    return "wrong";
+                }
+                return message.ImageCode;
+            }
+            return "wrong";
+        }
 
-        
+
         [HttpGet]
         public ActionResult GetConversation(string groupId,string lastTimeSend)
         {
             Group group = _db.Groups.Find(groupId);
-            IEnumerable<Message> messages =group.Messages.Where(m => m.When < Convert.ToDateTime(lastTimeSend)).Reverse().Take(10).ToList(); 
-            var json = JsonConvert.SerializeObject(messages,Formatting.None,new JsonSerializerSettings(){ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore});
+            IEnumerable<Message> messages =group.Messages.Where(m => m.When < Convert.ToDateTime(lastTimeSend)).Reverse().Take(50).ToList();
+            List<MessageVM> result = new List<MessageVM>();
+            foreach(Message item in messages)
+            {
+                MessageVM messageVM = new MessageVM()
+                {
+                    Content = item.Content,
+                    When = item.When + "",
+                    GroupId = item.Group.GroupId,
+                    SenderId = item.Sender.Id
+                };
+                result.Add(messageVM);
+            }
+            var json = JsonConvert.SerializeObject(result,Formatting.None,new JsonSerializerSettings(){ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore});
             return Content(json, "application/json");
         }
         
@@ -175,6 +234,22 @@ namespace ProjectTwo.Controllers
         {
             ApplicationUser user = _db.Users.Find(userId);
             return Json(new { status = "ok",userId = user.Id,userName = user.UserName,avatar = user.Avatar },JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public string GetImage(string groupId, string imageCode)
+        {
+            Group group = _db.Groups.Find(groupId);
+            Message message = group.Messages.Where(m => m.ImageCode == imageCode).FirstOrDefault();
+            if(message != null)
+            {
+                string image = message.Content;
+                return image;
+            }
+            else
+            {
+                return "Pchat-image";
+            }
         }
     }
 }

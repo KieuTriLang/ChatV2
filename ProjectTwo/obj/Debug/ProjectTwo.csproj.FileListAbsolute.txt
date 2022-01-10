@@ -105,7 +105,6 @@ C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\bin\Microsoft.Owin.Security.Twi
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\bin\Microsoft.Owin.Security.MicrosoftAccount.xml
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\bin\Microsoft.Owin.Security.OAuth.xml
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\bin\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.xml
-C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.csproj.AssemblyReference.cache
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.csproj.CoreCompileInputs.cache
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.csproj.CopyComplete
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.dll
@@ -116,3 +115,5 @@ C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.addst.resources
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.changeDataTypeImage.resources
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.changeDatatypeWhen.resources
+C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.csproj.AssemblyReference.cache
+C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.addImageCode.resources

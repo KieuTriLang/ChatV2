@@ -201,24 +201,33 @@
     <Compile Include="Migrations\202201061059095_changeDatatypeWhen.Designer.cs">
       <DependentUpon>202201061059095_changeDatatypeWhen.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202201101423470_addImageCode.cs" />
+    <Compile Include="Migrations\202201101423470_addImageCode.Designer.cs">
+      <DependentUpon>202201101423470_addImageCode.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageDbModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="ModelViews\GroupVM.cs" />
     <Compile Include="ModelViews\MessageVM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Base.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Login.css" />
+    <Content Include="Content\Register.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Scripts\Base.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
@@ -303,6 +312,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202201061059095_changeDatatypeWhen.resx">
       <DependentUpon>202201061059095_changeDatatypeWhen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202201101423470_addImageCode.resx">
+      <DependentUpon>202201101423470_addImageCode.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

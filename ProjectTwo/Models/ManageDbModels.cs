@@ -14,6 +14,7 @@ namespace ProjectTwo.Models
             public int Id { get; set; }
             public string Content { get; set; }
             public DateTime When { get; set; }
+            public string ImageCode { get; set; }
             public virtual Group Group { get; set; }
             public virtual ApplicationUser Sender { get; set; }
         }

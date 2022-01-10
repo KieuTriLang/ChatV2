@@ -11,19 +11,6 @@
     @Scripts.Render("~/Scripts/jquery.signalR-2.2.2.min.js")
     <script src="~/Scripts/handleRealTime.js"></script>
     <script src="~/signalr/hubs"></script>
-    @*<script>
-        function convertToBase64(target) {            
-            if (target.files && target.files[0]) {
-                var FR = new FileReader();
-                FR.onload = function (e) {
-                    target.previousSibling.previousSibling.innerHTML = '<img src="' + e.target.result + '"/>';
-                    target.previousSibling.value = e.target.result;
-                };
-                FR.readAsDataURL(target.files[0]);
-            }
-            console.log(target.previousSibling);
-        }
-    </script>*@
 }
 <nav class="navbar">
     @Html.Partial("~/Views/Shared/_LoginPartial.cshtml")
@@ -38,7 +25,7 @@
     </div>
     <i class="uil uil-sun mode-view"></i>
     <div class="selection-theme">
-        <div class="circle selected-theme">
+        <div class="default circle selected-theme">
 
         </div>
         <div class="list-theme">
@@ -74,124 +61,23 @@
 
 @if (User.Identity.IsAuthenticated)
 {
-<ul class="nav-list">
+    <ul class="nav-list">
 
-    @foreach (var item in Model)
-    {
-        <li class="link">
-            <input type="hidden" name="groupId" value="@item.GroupId" />
-            <div class="image">
-                @if (item.GroupImg != null)
-                {
-                    <img src="@item.GroupImg" />
-                }
-                else
-                {
-                    @item.GroupName.Substring(0, 2);
-                }
-            </div>
-            <span class="tooltip">@item.GroupName</span>
-        </li>
-    }
-</ul>
+        @foreach (var item in Model)
+        {
+            @Html.Partial("~/Views/Message/RenderNavItem.cshtml", item)
+        }
+    </ul>
 
-<header class="page-container">
-    <div class="cover active"><p>Welcome back @User.Identity.Name !</p></div>
-    <span class="overlay"></span>
-    @foreach (var item in Model)
-    {
-        <section class="page @item.GroupId">
-            <div class="header-chat">
-                <input type="hidden" name="groupId" id="groupId" value="@item.GroupId" />
-                <div class="image">
-                    @if (item.GroupImg != null)
-                    {
-                        <img src="@item.GroupImg" />
-                    }
-                    else
-                    {
-                        @item.GroupName.Substring(0, 2);
-                    }
-                </div>
-                <span class="tooltip">@item.GroupName</span>
-            </div>
-            <div class="content-chat">
-                @*<div class="person">
-                    <div class="image">
-                        <img src="https://images.unsplash.com/photo-1640191826083-61fba2dc62d5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHx0b3BpYy1mZWVkfDYzfGVkUU9taWhlVXRZfHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=600&q=60" />
-                    </div>
-                    <ul class="content-message">
-                        <li class="message-item">sayhello</li>
-                        <li class="message-item">xin chao</li>
-                        <li class="message-item">i love you so much</li>
-                        <li class="message-item">chuc mot ngay tot lanh</li>
-                        <li class="message-item">than</li>
-                    </ul>
-                </div>
-                <div class="me">
-                    <ul class="content-message">
-                        <li class="message-item">sayhello</li>
-                        <li class="message-item">xin chao</li>
-                        <li class="message-item">i love you so much</li>
-                        <li class="message-item">chuc mot ngay tot lanh</li>
-                        <li class="message-item picture">
-                            <div class="image">
-                                <img src="https://images.unsplash.com/photo-1640191826083-61fba2dc62d5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHx0b3BpYy1mZWVkfDYzfGVkUU9taWhlVXRZfHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=600&q=60" />
-                            </div>
-                        </li>
-                    </ul>
-                </div>*@
-            </div>
-            <div class="options">
-                <div class="edit-group">
-                    <i class="uil uil-pen"></i>
-                    <form class="form-edit">
-                        <input type="text" id="nameGroup" value="@item.GroupName" autocomplete="off"/>
-                        <label for="@item.GroupId" class="image">
-                            @if (item.GroupImg != null)
-                            {
-                                <img src="@item.GroupImg" />
-                            }
-                            else
-                            {
-                                @item.GroupName.Substring(0, 2);
-                            }
-                        </label>
-                        <input type="hidden" id="imageData" />
-                        <input type="file" id="@item.GroupId" style="display:none" class="img-group"/>
-                        <i class="uil uil-check btn-update"></i>
-                        @*<i class="uil uil-spinner"></i>*@
-                    </form>
-                </div>                
-                <div class="group">
-                    <i class="uil uil-users-alt"></i>
-                    <ul class="members">
-                        <li class="member-item add-member"><i class="uil uil-plus"></i>Add</li>
-                        @foreach (var member in item.Members)
-                        {
-                            <li class="member-item">
-                                <div class="image">
-                                    @if (member.Avatar != null)
-                                    {
-                                        <img src="@member.Avatar" />
-                                    }
-                                    else
-                                    {
-                                        @member.UserName.Substring(0, 2);
-                                    }
-                                </div>
-                                <span class="tooltip">@member.UserName</span>
-                            </li>
-                        }
+    <header class="page-container">
+        <div class="cover active"><p>Welcome back @User.Identity.Name !</p></div>
+        <span class="overlay"></span>
+        @foreach (var item in Model)
+        {
+            @Html.Partial("~/Views/Message/RenderPage.cshtml", item)
 
-                    </ul>
-                </div>
-
-                <i class="uil uil-sign-out-alt"></i>
-            </div>
-        </section>
-    }    
-</header>
+        }
+    </header>
     <form class="type-bar" id="type-bar">
         <input type="hidden" name="userId" id="userId" value="@User.Identity.GetUserId()" />
         <label for="sendImage"><i class="uil uil-image"></i></label>
@@ -199,6 +85,18 @@
         <input type="text" name="message" id="message" placeholder="Abc" autocomplete="off" />
         <button type="submit"><i class="uil uil-message"></i></button>
     </form>
+    <div class="box-alert">
+        
+    </div>
+    <div class="box-confirm-leave">
+        <input type="hidden" name="groupId" />
+        <p class="name-group">Hello world</p>
+        <p class="confirm-sentence">Do you wanna leave?</p>
+        <div class="actions">
+            <button class="cancel">Cancel</button>
+            <button class="accept">Accept</button>
+        </div>
+    </div>
 }
 else
 {

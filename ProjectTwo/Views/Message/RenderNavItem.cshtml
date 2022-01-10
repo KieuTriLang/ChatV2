@@ -1,5 +1,5 @@
 ﻿@model ProjectTwo.Models.ManageDbModels.Group
-<li class="link">
+<li class="link @Model.GroupId">
     <input type="hidden" name="groupId" value="@Model.GroupId" />
     <div class="image">
         @if (Model.GroupImg != null)

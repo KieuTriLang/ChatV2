@@ -1,7 +1,10 @@
 ﻿$(document).ready(function () {
     var chat = $.connection.chatHub;
     $.connection.hub.start().done(function () {
-
+        [...document.querySelectorAll('.link')].forEach((item, i) => {
+            chat.server.joinGroup(item.children[0].value);
+            getConversation(item.children[0].value, new Date().toISOString());
+        })
     });
     const container = document.querySelector('.page-container');
     var pages = [...document.querySelectorAll('.page')];
@@ -17,7 +20,7 @@
         $('.cover').remove();
     })
 
-    const changePage = (i) => {        
+    const changePage = (i) => {
         overlay.style.animation = `slide 1s linear 1`;
         setTimeout(() => {
             $('.page').each(function () {
@@ -30,35 +33,80 @@
         }, 1000);
     }
 
-    links.forEach((item, i) => {        
+    links.forEach((item, i) => {
         item.addEventListener('click', () => {
-            actionLink(item,i);
+            actionLink(item, i);
         })
     })
 
     //fucntion 
-    function scrollToBottom(selector) {
-        $(selector).animate({ scrollTop: $(selector).height() }, 700);
+    function getInfoUser(userId) {
+        var user = {
+            id: "",
+            userName: "",
+            avatar: ""
+        };
+        $.ajax({
+            type: "GET",
+            url: "/Message/GetInfoUser",
+            async: false,
+            data: jQuery.param({ userId: userId }),
+            success: function (res) {
+                if (res.status = "ok") {
+                    user.id = res.userId;
+                    user.userName = res.userName;
+                    user.avatar = res.avatar;
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+        return user;
     }
 
-    function actionLink(item,i) {
+    function checkDay(day1, day2) {
+        var first = new Date(day1);
+        var second = new Date(day2);
+        if (first.getDate() != second.getDate()) {
+            return false;
+        }
+        if (first.getMonth() != second.getMonth()) {
+            return false;
+        }
+        if (first.getFullYear() != second.getFullYear()) {
+            return false;
+        }
+        return true;
+    }
+
+    function convertTimeString(time) {
+        var dateObj = new Date(time);
+        var month = dateObj.getUTCMonth() + 1;
+        var day = dateObj.getUTCDate();
+        var year = dateObj.getUTCFullYear();
+
+        return newdate = day + "/" + month + "/" + year;
+    }
+
+    function scrollToBottom(selector) {
+        $(selector)[0].scrollTop = $(selector)[0].scrollHeight;
+    }
+
+    function actionLink(item, i) {
         $('.link').each(function () {
             $(this).removeClass("active");
         });
         changePage(i);
-        links[i].classList.add("active");
-        chat.server.joinGroup(item.children[0].value);
-        getConversation(item.children[0].value, new Date().toISOString());
+        links[i].classList.add("active");        
     }
 
     function getPageLinks() {
         pages = [...document.querySelectorAll('.page')];
         links = [...document.querySelectorAll('.link')];
-        console.log(pages);
-        console.log(links);
         links.forEach((item, i) => {
             item.addEventListener('click', () => {
-                actionLink(item,i);
+                actionLink(item, i);
             })
         })
     }
@@ -103,9 +151,10 @@
             type: "GET",
             url: "/Message/RenderPage",
             async: false,
-            data: jQuery.param({ groupId: id, active: ($('.page').length == 0)?"active":"" }),
+            data: jQuery.param({ groupId: id, active: ($('.page').length == 0) ? "active" : "" }),
             success: function (res) {
                 $('.page-container').prepend(res);
+                getConversation(id, new Date().toISOString());
             },
             error: function (err) {
                 console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
@@ -115,9 +164,9 @@
             type: "GET",
             url: "/Message/RenderNavItem",
             async: false,
-            data: jQuery.param({ groupId: id}),
+            data: jQuery.param({ groupId: id }),
             success: function (res) {
-                $('.nav-list').prepend(res);                
+                $('.nav-list').prepend(res);
             },
             error: function (err) {
                 console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
@@ -126,16 +175,76 @@
         getPageLinks();
     }
 
-    function getInfoGroup(groupId) {
+    function renderMessage(groupId, senderId, message, when) {
+        var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
+        //console.log("compare :" + when + " vs " + time);
+        //console.log(checkDay(when, time));
+        //console.log(!checkDay(when, time));
+        //console.log(checkDay(when, new Date()));
+
+        var id = '<input type="hidden" name="personId" value="' + senderId + '"/>';
+        var user = getInfoUser(senderId);
+        var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
+        var userName = '<li class="user-name"><small>' + user.userName + '</small></li>';
+        var avatar = '';
+        if (user.avatar != null) {
+            avatar = '<div class="image"><img src="' + user.avatar + '"/></div>';
+        } else {
+            avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
+        }
+
+        var partMessage = (new RegExp('^data:image').test(message)) ? '<li class="message-item picture">' + timeSend + '<div class="image"><img src="' + message + '"/></div>' + '</li>' : '<li class="message-item">' + timeSend + message + '</li>';
+        var contentMessage = '<ul class="content-message">' + userName + partMessage + '</ul>';
+
+        if ($(`.${groupId} .content-chat section`).length > 0) {
+            if ($(`.${groupId} .content-chat section`).first().hasClass(senderId) && checkDay(when, time)) {
+                $(`.${groupId} .content-chat section`).first().children('ul').children('.message-item').first().before(partMessage);
+            } else {                
+                if (!checkDay(when, time) && checkDay(time,new Date())) {
+                    $(`.${groupId} .content-chat`).prepend('<p class="time">Today</p>');
+                } else if (!checkDay(when, time)) {
+                    $(`.${groupId} .content-chat`).prepend('<p class="time">' + convertTimeString(time) + '</p>');
+                }
+                if (senderId != $('.type-bar #userId').val()) {
+                    var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';                                       
+                    $(`.${groupId} .content-chat`).prepend(person);
+                } else {
+                    var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
+                    $(`.${groupId} .content-chat`).prepend(person);
+                }
+            }
+        }
+
+        if ($(`.${groupId} .content-chat section`).length == 0) {
+            if (senderId != $('.type-bar #userId').val()) {
+                var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
+                $(`.${groupId} .content-chat`).prepend(person);
+            } else {
+                var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
+                $(`.${groupId} .content-chat`).prepend(person);
+            }
+        }
+    }
+
+    function getConversation(groupId, lastTimeSend, loadOlder = false) {
         $.ajax({
             type: "GET",
-            url: "/Message/GetInfoGroup",
+            url: "/Message/GetConversation",
             async: false,
-            data: jQuery.param({ groupId: groupId }),
+            data: jQuery.param({ groupId: groupId, lastTimeSend: lastTimeSend }),
             success: function (res) {
-                console.log(res);
-                renderListGroup(res.groupId, res.groupName, res.groupImg);
-                getPageLinks();
+                if (res.length > 0) {
+                    //console.log(res);
+                    if (!loadOlder) {
+                        $(`.${res[0].GroupId} .content-chat`).empty();
+                    }                    
+                    res.forEach(function (item) {
+                        renderMessage(item.GroupId, item.SenderId, item.Content, item.When);
+                    })
+                    if (!loadOlder) {
+                        scrollToBottom(`.${res[0].GroupId} .content-chat`);
+                    }                    
+                }
             },
             error: function (err) {
                 console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
@@ -143,64 +252,11 @@
         })
     }
 
-    function renderMessage(groupId, sender, message, when) {
-        var id = '<input type="hidden" name="personId" value="' + sender.Id + '"/>';
-        var user = sender;
-        var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
-        var userName = '<li class="user-name"><small>' + user.UserName + '</small></li>';
-        var avatar = '';
-        if (user.avatar != null) {
-            avatar = '<div class="image"><img src="' + user.Avatar + '"/></div>';
-        } else {
-            avatar = '<div class="image">' + user.UserName.substring(0, 2) + '</div>';
-        }
-        
-        var partMessage = (new RegExp('^data:image').test(message)) ? '<li class="message-item picture">' + timeSend + '<div class="image"><img src="' + message + '"/></div>' + '</li>' : '<li class="message-item">' + timeSend + message + '</li>';
-        var contentMessage = '<ul class="content-message">' + userName + partMessage + '</ul>';
-        
-        if ($(`.${groupId} .content-chat section`).length > 0) {
-            if ($(`.${groupId} .content-chat section`).first().hasClass(sender.Id)) {
-                $(`.${groupId} .content-chat section`).first().children('ul').children('.message-item').first().after(partMessage);
-            } else {
-                if (sender.Id != $('.type-bar #userId').val()) {
-                    var person = '<section class="person ' + user.Id + '">' + id + avatar + contentMessage + '</section>';
-                    $(`.${groupId} .content-chat`).prepend(person);
-                } else {
-                    var person = '<section class="me ' + user.Id + '">' + contentMessage + '</section>';
-                    $(`.${groupId} .content-chat`).prepend(person);
-                }
-            }
-        }
-
-        if ($(`.${groupId} .content-chat section`).length == 0) {
-            if (sender.Id != $('.type-bar #userId').val()) {
-                var person = '<section class="person ' + sender.Id + '">' + id + avatar + contentMessage + '</section>';
-                $(`.${groupId} .content-chat`).prepend(person);
-            } else {
-                var person = '<section class="me ' + sender.Id + '">' + contentMessage + '</section>';
-                $(`.${groupId} .content-chat`).prepend(person);
-            }
-        }
-    }
-
-    function getConversation(groupId, lastTimeSend) {
-        $.ajax({
-            type: "GET",
-            url: "/Message/GetConversation",
-            data: jQuery.param({ groupId: groupId, lastTimeSend: lastTimeSend }),
-            success: function (res) {
-                if (res.length > 0) {
-                    console.log(res);
-                    $(`.${res[0].Group.GroupId} .content-chat`).empty();
-                    res.forEach(function (item) {
-                        renderMessage(item.Group.GroupId, item.Sender, item.Content, item.When);
-                    })
-                    scrollToBottom(`.${res[0].Group.GroupId} .content-chat`);
-                }                
-            },
-            error: function (err) {
-                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
-            }
+    function addAlert(type,style,from,message) {
+        var alertContent = '<div class="alert-content"><p class="from">' + from + '</p><p class="alert-details">' + message + "</p></div>";
+        var icon = `<i class="uil uil-${style} ${type}"></i>`;
+        $('<div class="alert-item"></div>').append(icon + alertContent).appendTo('.box-alert').addClass("active").on('animationend', function () {
+            $(this).remove();
         })
     }
 
@@ -230,7 +286,35 @@
     })
 
     $('.page-container').on('click', '.uil-sign-out-alt', function () {
-        
+        var groupId = $(this).parent().prevAll().last().val();
+        var groupName = $(this).parent().prevAll().last().next().children(".tooltip").text();
+        $('.box-confirm-leave input[name="groupId"]').val(groupId);
+        $('.box-confirm-leave .name-group').text(groupName);
+        $('.box-confirm-leave').addClass("active");
+    })
+    // actions box-confirm-leave
+    $('.box-confirm-leave .cancel').on('click', function () {
+        $('.box-confirm-leave').removeClass("active");
+    })
+    $('.box-confirm-leave .accept').on('click', function () {
+        console.log($(this).parent().prevAll().last().val())
+        var groupId = $(this).parent().prevAll().last().val();
+        $.ajax({
+            type: "POST",
+            url: "/Message/LeaveGroup",
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                if (res == "True") {
+                    $(`.page-container .${groupId}`).remove();
+                    $(`.nav-list .${groupId}`).remove();
+                    getPageLinks();
+                    $('.box-confirm-leave').removeClass("active")
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })        
     })
 
     $('.type-bar #message').on('click', function () {
@@ -269,31 +353,33 @@
             if (el.prop('files') && el.prop('files')[0]) {
                 var FR = new FileReader();
                 FR.onload = function (e) {
-                    el.prev().prev().empty().append('<img src="' +e.target.result+'"/>');
+                    el.prev().prev().empty().append('<img src="' + e.target.result + '"/>');
                     el.prev().val(e.target.result);
                 };
                 FR.readAsDataURL(el.prop('files')[0]);
             }
+        } else {
+            addAlert("warning", "info-circle", "System", "Image size <= 2MB");
         }
 
-        
+
     }
     //edit group
     $('.page-container').on('click', '.uil-pen', function () {
         $(this).next().toggleClass('active');
-        $(this).next().children().last().empty();
+        $(this).next().children().last().empty();        
     })
     $(".img-group").change(function () {
-        console.log($(this));
         convertToBase64($(this));
     });
     $('.form-edit .btn-update').on('click', function () {
         $(this).removeClass('uil-check').addClass('uil-spinner').empty();
         var group = {
-            GroupId: $(this).parents('.options').prevAll().last().children('#groupId').val(),
+            GroupId: $(this).parents('.options').prevAll().last().val(),
             GroupName: $(this).prevAll().last().val() == "" ? $(this).parents('.options').prevAll().last().children('.tooltip').text() : $(this).prevAll().last().val(),
             GroupImg: $(this).prev().prev().val()
         }
+        //console.log(group);
         var el = $(this);
         $.ajax({
             type: "POST",
@@ -307,7 +393,7 @@
             error: function (err) {
                 console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
             }
-        })        
+        })
         //console.log(group);
     })
 
@@ -316,21 +402,39 @@
         var theme = $(this).attr('class').split(/\s+/)[0];
         if (theme == "default") {
             $('body').removeClass();
-            $(this).parent().prev().removeClass().addClass("circle selected-theme");
+            $(this).parent().prev().removeClass().addClass("default circle selected-theme");
         } else {
             $('body').removeClass().addClass(theme);
-            $(this).parent().prev().removeClass().addClass(`circle selected-theme ${theme}`);
+            $(this).parent().prev().removeClass().addClass(`${theme} circle selected-theme `);
         }
     })
     //change dark-light
-    $('.navbar').on('click','.mode-view', function () {
+    $('.navbar').on('click', '.mode-view', function () {
         if ($(this).hasClass('uil-sun')) {
             $(this).removeClass('uil-sun').addClass('uil-moon');
             $('body').attr('id', 'light');
-        }else{
+        } else {
             $(this).removeClass('uil-moon').addClass('uil-sun');
             $('body').attr('id', '');
         }
+    })
+
+    var loading = 0;
+    $('.page .content-chat').on('scroll', function () {
+        //console.log("calc:", ($(this).height() + $(this)[0].scrollTop) - ($(this)[0].scrollHeight - 20));
+        //console.log(new Date('2013-08-02T10:09:08Z'));
+        //var sh = ($(this)[0].scrollHeight - 20);
+        //var hst = ($(this).height() + $(this)[0].scrollTop);
+        //if (sh - hst >= sh - 450) {
+        //    var groupId = $(this).parent().children('#groupId').val();
+        //    var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
+        //    getConversation(groupId, time, true);            
+        //}
+        //if ($(this)[0].scrollTop) {
+        //    var groupId = $(this).parent().children('#groupId').val();
+        //    var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
+        //    getConversation(groupId, time, true);
+        //};
     })
 })
 

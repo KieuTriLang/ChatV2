@@ -7,11 +7,13 @@
 
     @RenderSection("css", required: false)
     @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/Base.css")
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
 </head>
 <body>
     @RenderBody()
     @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/Base.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>
