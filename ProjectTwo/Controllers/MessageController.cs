@@ -67,8 +67,10 @@ namespace ProjectTwo.Controllers
                 };
                 _db.Groups.Add(group);
                 _db.SaveChanges();
-                AddToGroup(groupId, User.Identity.GetUserId());
-                AddToGroup(groupId, userId);
+                if(!AddToGroup(groupId, User.Identity.GetUserId()) && !AddToGroup(groupId, userId))
+                {
+                    return Json(new { status = "notok"});
+                }
             }
             catch (Exception ex)
             {
@@ -100,21 +102,21 @@ namespace ProjectTwo.Controllers
         public ActionResult GetInfoGroup(string groupId)
         {
             Group group = _db.Groups.Find(groupId);
-            var json = JsonConvert.SerializeObject(group, Formatting.None, new JsonSerializerSettings() { ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore });
-            return Content(json, "application/json");
+            return Json(new { GroupId = group.GroupId, GroupName = group.GroupName, GroupImg = group.GroupImg },JsonRequestBehavior.AllowGet);
         }
         
+        [HttpPost]
         public bool AddToGroup(string groupId, string memberId)
         {
             Group group = _db.Groups.Find(groupId);
-            if (group != null)
+            ApplicationUser record = group.Members.Where(m => m.Id == memberId).FirstOrDefault();
+            if (group != null && record == null)
             {
                 var user = _db.Users.Find(memberId);
                 _db.Users.Attach(user);
                 group.Members.Add(user);
                 _db.SaveChanges();
                 return true;
-
             }
             return false;
         }
@@ -233,7 +235,8 @@ namespace ProjectTwo.Controllers
         public ActionResult GetInfoUser(string userId)
         {
             ApplicationUser user = _db.Users.Find(userId);
-            return Json(new { status = "ok",userId = user.Id,userName = user.UserName,avatar = user.Avatar },JsonRequestBehavior.AllowGet);
+            string userName = user.DisplayName != null ? user.DisplayName : user.UserName;
+            return Json(new { status = "ok",userId = user.Id,userName = userName,avatar = user.Avatar },JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]

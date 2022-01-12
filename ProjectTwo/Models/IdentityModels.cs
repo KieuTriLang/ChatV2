@@ -24,6 +24,7 @@ namespace ProjectTwo.Models
             return userIdentity;
         }
         public string Avatar { get; set; }
+        public string DisplayName { get; set; }
         public virtual ICollection<Group> Groups { get; set; }
         public virtual ICollection<Message> Messages { get; set; }
     }

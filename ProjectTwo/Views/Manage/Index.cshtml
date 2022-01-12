@@ -2,86 +2,57 @@
 @{
     ViewBag.Title = "Manage";
 }
-
-<h2>@ViewBag.Title.</h2>
-
-<p class="text-success">@ViewBag.StatusMessage</p>
-<div>
-    <h4>Change your account settings</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>Password:</dt>
-        <dd>
-            [
-            @if (Model.HasPassword)
+@section css{
+    <link href="~/Content/ManageUser.css" rel="stylesheet" />
+}
+@section scripts{
+    <script src="~/Scripts/ManageUser.js"></script>
+}
+<a class="back-to-home" href="/Home/Index"><i class="uil uil-corner-up-left-alt"></i>Back</a>
+<div class="container">
+    <div class="avatar-user">
+        <div class="image">
+            @if (Model.UserInfo.Avatar != null)
             {
-                @Html.ActionLink("Change your password", "ChangePassword")
+                <img src="@Model.UserInfo.Avatar" />
             }
             else
             {
-                @Html.ActionLink("Create", "SetPassword")
+                @Model.UserInfo.UserName.Substring(0, 2);
             }
-            ]
-        </dd>
-        <dt>External Logins:</dt>
-        <dd>
-            @Model.Logins.Count [
-            @Html.ActionLink("Manage", "ManageLogins") ]
-        </dd>
-        @*
-            Phone Numbers can used as a second factor of verification in a two-factor authentication system.
-             
-             See <a href="https://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication using SMS.
-             
-             Uncomment the following block after you have set up two-factor authentication
-        *@
-        @*  
-            <dt>Phone Number:</dt>
-            <dd>
-                @(Model.PhoneNumber ?? "None")
-                @if (Model.PhoneNumber != null)
-                {
-                    <br />
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
-                    using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
-                    }
-                }
-                else
-                {
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
-                }
-            </dd>
-        *@
-        <dt>Two-Factor Authentication:</dt>
-        <dd>
-            <p>
-                There are no two-factor authentication providers configured. See <a href="https://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication.
-            </p>
-            @*@if (Model.TwoFactor)
-                {
-                    using (Html.BeginForm("DisableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Enabled
-                        <input type="submit" value="Disable" class="btn btn-link" />
-                        </text>
-                    }
-                }
-                else
-                {
-                    using (Html.BeginForm("EnableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Disabled
-                        <input type="submit" value="Enable" class="btn btn-link" />
-                        </text>
-                    }
-                }*@
-        </dd>
-    </dl>
+        </div>
+        <input type="file" id="avatar" style="display:none" />
+        <label for="avatar"><i class="uil uil-pen"></i></label>
+    </div>
+    <ul class="detail-user">
+        <li class="user-name">
+            <span><i class="uil uil-user"></i></span>
+            @{ 
+                string userName = Model.UserInfo.DisplayName != null ? Model.UserInfo.DisplayName : Model.UserInfo.UserName;
+            }
+            <input type="text" value="@userName" disabled="disabled" />
+            <a><i class="uil uil-pen"></i></a>
+        </li>
+        <li>
+            <span><i class="uil uil-at"></i></span>
+            <span>@Model.UserInfo.Email</span>
+        </li>
+        <li>
+            <span><i class="uil uil-key-skeleton"></i></span>
+            <span>*********</span>
+            <a href="/Manage/ChangePassword"><i class="uil uil-pen"></i></a>
+        </li>
+    </ul>
+</div>
+<div class="box-alert">
+    @if (ViewBag.StatusMessage != "")
+    {
+        <div class="alert-item active">
+            <i class="uil uil-check success"></i>
+            <div class="alert-content">
+                <p class="from">System</p>
+                <p class="alert-details">@ViewBag.StatusMessage</p>
+            </div>
+        </div>
+    }
 </div>

@@ -66,6 +66,7 @@ namespace ProjectTwo.Controllers
             var userId = User.Identity.GetUserId();
             var model = new IndexViewModel
             {
+                UserInfo = new ApplicationDbContext().Users.Find(User.Identity.GetUserId()),
                 HasPassword = HasPassword(),
                 PhoneNumber = await UserManager.GetPhoneNumberAsync(userId),
                 TwoFactor = await UserManager.GetTwoFactorEnabledAsync(userId),
@@ -322,6 +323,47 @@ namespace ProjectTwo.Controllers
             return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
         }
 
+
+        [HttpPost]
+        public bool UpdateUserName(string userName)
+        {
+            ApplicationDbContext _db = new ApplicationDbContext();
+            ApplicationUser record = _db.Users.Find(User.Identity.GetUserId());
+            if(record != null)
+            {
+                try
+                {
+                    record.DisplayName = userName;
+                    _db.SaveChanges();
+                }catch(Exception ex)
+                {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        [HttpPost]
+        public bool UpdateAvatar(string avatar)
+        {
+            ApplicationDbContext _db = new ApplicationDbContext();
+            ApplicationUser record = _db.Users.Find(User.Identity.GetUserId());
+            if (record != null)
+            {
+                try
+                {
+                    record.Avatar = avatar;
+                    _db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing && _userManager != null)

@@ -115,5 +115,6 @@ C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.addst.resources
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.changeDataTypeImage.resources
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.changeDatatypeWhen.resources
-C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.csproj.AssemblyReference.cache
 C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.addImageCode.resources
+C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.Migrations.addDisplayName.resources
+C:\Users\DELL\source\repos\ProjectTwo\ProjectTwo\obj\Debug\ProjectTwo.csproj.AssemblyReference.cache

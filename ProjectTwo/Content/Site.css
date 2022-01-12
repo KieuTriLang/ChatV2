@@ -384,8 +384,7 @@
     z-index:1;
 }
 
-
-.search-bar{
+.navbar .search-bar{
     position:relative;
     width: 35vw;
     display:flex;
@@ -395,11 +394,11 @@
     color: var(--font-color-main);
     font-size: 18px;
 }
-.search-box{
-    position:relative;
-    width:100%;
+.navbar .search-box {
+    position: relative;
+    width: 100%;
 }
-.search-bar input {
+.navbar .search-bar input {
     width: 100%;
     height: 28px;
     padding: 0 10px;
@@ -411,46 +410,46 @@
     -webkit-transition: width 0.4s ease-in-out;
     transition: width 0.4s ease-in-out;
 }
-.search-bar input:focus{
+.navbar .search-bar input:focus{
     box-shadow: 0 0 5px var(--hover-color);
 }
-.search-result::-webkit-scrollbar {
-    position:absolute;
+.navbar .search-result::-webkit-scrollbar {
+    position: absolute;
     width: 5px;
 }
-.search-result::-webkit-scrollbar-track {
+.navbar .search-result::-webkit-scrollbar-track {
     background: var(--bg-color-main);
 }
-.search-result::-webkit-scrollbar-thumb {
+.navbar .search-result::-webkit-scrollbar-thumb {
     background: var(--bg-color-boxtype);
 }
-.search-bar .search-result{
+.navbar .search-result {
     padding: 0 0 0 0;
-    position:absolute;
-    top:110%;
-    left:0;
-    width:100%;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
     max-height: 225px;
     overflow: auto;
     background: var(--bg-color-main);
     box-shadow: 0 0 3px var(--hover-color);
-    z-index:41;
-    display:none;
+    z-index: 41;
+    display: none;
 }
-.search-result.active{
+.navbar .search-result.active{
     display:block;
 }
-.result-item{
+.navbar .result-item {
     padding: 10px 10px;
-    display:flex;
-    align-items:center;
-    gap:15px;
-    font-size:14px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
 }
-.result-item:hover{
+.navbar .result-item:hover{
     background: var(--bg-color-boxtype);
 }
-.result-item .image {
+.navbar .result-item .image {
     position: relative;
     width: 25px;
     height: 25px;
@@ -461,7 +460,7 @@
     justify-content: center;
     align-items: center;
 }
-.result-item img {
+.navbar .result-item img {
     width: auto;
     height: auto;
     max-width: 80px;
@@ -641,8 +640,8 @@
 }
 .content-chat .picture .image{
     position: relative;
-    max-width: 300px;
-    max-height: 300px;
+    max-width: 250px;
+    max-height: 250px;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -652,8 +651,8 @@
 .content-chat .picture img{
     width: auto;
     height: auto;
-    max-width:400px;
-    max-height:400px;
+    max-width:300px;
+    max-height:300px;
 }
 @keyframes slide{
     100%{
@@ -858,7 +857,7 @@
     box-shadow: 0 0 3px var(--hover-color);
 }
 .alert-item.active{
-    animation: showAlert 4s ease-in-out;
+    animation: showAlert 5s ease-in-out;
 }
 i.success {
     color: darkcyan;
@@ -963,4 +962,119 @@ i.warning{
 .box-confirm-leave .actions .accept:hover{
     background: var(--hover-color);
     color: var(--font-color-main);
+}
+
+.box-add-friend{
+    padding: 0 0 10px 0;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:350px;
+    height:325px;
+    display:none;
+    flex-direction:column;
+    gap:20px;
+    background: var(--bg-color-chat);
+    z-index:56;
+    box-shadow: 0 0 3px var(--hover-color);
+    border-radius:10px;
+    overflow:hidden;
+}
+.box-add-friend.active{
+    display:flex;
+}
+.box-add-friend > i{
+    position:absolute;
+    top:10px;
+    right:10px;
+    color: var(--font-color-main);
+}
+.box-add-friend >i:hover{
+    cursor:pointer;
+}
+.box-add-friend .name-group{
+    text-align:center;
+    padding:10px 0;
+    font-weight:700;
+    background: var(--hover-color);
+}
+.box-add-friend .search-bar{
+    margin: 0 auto;
+    position:relative;
+    width: 85%;
+    display:flex;
+    justify-content:start;
+    align-items:center;
+    gap: 10px;
+    color: var(--font-color-main);
+    font-size: 18px;
+}
+.box-add-friend .search-box {
+    position: relative;
+    width: 100%;
+}
+.box-add-friend .search-bar input {
+    width: 100%;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--hover-color);
+    border-radius: 5px;
+    outline: none;
+    color: var(--font-color-main);
+    background: var(--bg-color-chat);
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+.box-add-friend .search-bar input:focus{
+    box-shadow: 0 0 5px var(--hover-color);
+}
+.box-add-friend .search-result::-webkit-scrollbar {
+    position: absolute;
+    width: 5px;
+}
+.box-add-friend .search-result::-webkit-scrollbar-track {
+    background: var(--bg-color-main);
+}
+.box-add-friend .search-result::-webkit-scrollbar-thumb {
+    background: var(--bg-color-boxtype);
+}
+.box-add-friend .search-result {
+    padding: 0 0 0 0;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    max-height: 225px;
+    overflow: auto;
+    background: var(--bg-color-main);
+    z-index: 41;
+}
+.box-add-friend .result-item {
+    padding: 10px 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+}
+.box-add-friend .result-item:hover{
+    cursor:pointer;
+    background: var(--bg-color-boxtype);
+}
+.box-add-friend .result-item .image {
+    position: relative;
+    width: 25px;
+    height: 25px;
+    background: var(--hover-color);
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.box-add-friend .result-item img {
+    width: auto;
+    height: auto;
+    max-width: 80px;
+    max-height: 80px;
 }

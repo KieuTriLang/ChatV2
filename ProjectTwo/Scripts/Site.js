@@ -1,5 +1,10 @@
 ﻿$(document).ready(function () {
     var chat = $.connection.chatHub;
+    $.connection.hub.disconnected(function () {
+        setTimeout(function () {
+            $.connection.hub.start();
+        }, 5000); // Restart connection after 5 seconds.
+    });
     $.connection.hub.start().done(function () {
         [...document.querySelectorAll('.link')].forEach((item, i) => {
             chat.server.joinGroup(item.children[0].value);
@@ -85,8 +90,10 @@
         var month = dateObj.getUTCMonth() + 1;
         var day = dateObj.getUTCDate();
         var year = dateObj.getUTCFullYear();
+        var hour = (dateObj.getHours()<10) ? 0 + dateObj.getHours(): dateObj.getHours();
+        var minute = (dateObj.getMinutes()<10) ? 0 + dateObj.getMinutes(): dateObj.getMinutes();
 
-        return newdate = day + "/" + month + "/" + year;
+        return newdate = (new Date().getUTCDate() - dateObj.getUTCDate() == 1) ? `${hour}:${minute} Yesterday` : `${hour}:${minute} ${day}/${month}/${year}`;
     }
 
     function scrollToBottom(selector) {
@@ -111,13 +118,13 @@
         })
     }
 
-    function searchFriend(keyword) {
+    function searchFriend(target,keyword) {
         $.ajax({
             type: "GET",
             url: "/Message/SearchFriend",
             data: jQuery.param({ keyword: keyword }),
             success: function (res) {
-                $('.search-result').empty().addClass('active').append(res);
+                $(`.${target} .search-result`).empty().addClass('active').append(res);
             },
             error: function (err) {
                 console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
@@ -137,6 +144,7 @@
                     chat.server.sendRequest(res1.userId, res1.groupId);
                     chat.server.joinGroup(res1.groupId);
                     groupId = res1.groupId;
+                    addAlert("success","check","System","Create group successfully")
                 }
             },
             error: function (err) {
@@ -144,6 +152,29 @@
             }
         })
         return groupId;
+    }
+
+    function getInfoGroup(groupId) {
+        var group = {
+            GroupId: "",
+            GroupName: "",
+            GroupImg: ""
+        }
+        $.ajax({
+            type: "GET",
+            url: "/Message/GetInfoGroup",
+            async: false,
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                group.GroupId = res.GroupId;
+                group.GroupName = res.GroupName;
+                group.GroupImg = res.GroupImg;
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+        return group;
     }
 
     function renderListGroup(id) {
@@ -177,6 +208,9 @@
 
     function renderMessage(groupId, senderId, message, when) {
         var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
+        if (checkDay(when, time) || checkDay(time, new Date().toISOString())) {
+            $(`.${groupId} .content-chat .time`).first().remove();
+        }
         //console.log("compare :" + when + " vs " + time);
         //console.log(checkDay(when, time));
         //console.log(!checkDay(when, time));
@@ -192,7 +226,6 @@
         } else {
             avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
         }
-
         var partMessage = (new RegExp('^data:image').test(message)) ? '<li class="message-item picture">' + timeSend + '<div class="image"><img src="' + message + '"/></div>' + '</li>' : '<li class="message-item">' + timeSend + message + '</li>';
         var contentMessage = '<ul class="content-message">' + userName + partMessage + '</ul>';
 
@@ -200,10 +233,8 @@
             if ($(`.${groupId} .content-chat section`).first().hasClass(senderId) && checkDay(when, time)) {
                 $(`.${groupId} .content-chat section`).first().children('ul').children('.message-item').first().before(partMessage);
             } else {                
-                if (!checkDay(when, time) && checkDay(time,new Date())) {
+                if (!checkDay(when, time) && checkDay(time,new Date().toISOString())) {
                     $(`.${groupId} .content-chat`).prepend('<p class="time">Today</p>');
-                } else if (!checkDay(when, time)) {
-                    $(`.${groupId} .content-chat`).prepend('<p class="time">' + convertTimeString(time) + '</p>');
                 }
                 if (senderId != $('.type-bar #userId').val()) {
                     var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';                                       
@@ -224,6 +255,12 @@
                 $(`.${groupId} .content-chat`).prepend(person);
             }
         }
+        if (checkDay(when,new Date().toISOString())) {
+            $(`.${groupId} .content-chat`).prepend('<p class="time">Today</p>');
+        } else {
+            $(`.${groupId} .content-chat`).prepend('<p class="time">' + convertTimeString(when) + '</p>');
+        }
+        
     }
 
     function getConversation(groupId, lastTimeSend, loadOlder = false) {
@@ -235,9 +272,6 @@
             success: function (res) {
                 if (res.length > 0) {
                     //console.log(res);
-                    if (!loadOlder) {
-                        $(`.${res[0].GroupId} .content-chat`).empty();
-                    }                    
                     res.forEach(function (item) {
                         renderMessage(item.GroupId, item.SenderId, item.Content, item.When);
                     })
@@ -260,20 +294,46 @@
         })
     }
 
+    function addMember(groupId, memberId) {
+        $.ajax({
+            type: "POST",
+            url: "/Message/AddToGroup",
+            async: false,
+            data: jQuery.param({ groupId: groupId, memberId: memberId }),
+            success: function (res) {
+                if (res == "True") {
+                    chat.server.sendRequest(memberId,groupId);
+                    addAlert("success", "check", "System", "Add successfully");
+                } else {
+                    addAlert("warning", "info-circle", "System", "This member has joined");
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
     // -------
 
     chat.client.receiveRequest = function (toPerson, groupId) {
         if (toPerson == $('.type-bar #userId').val()) {
             chat.server.joinGroup(groupId);
             renderListGroup(groupId);
+            var group = getInfoGroup(groupId);
+            addAlert("success", "info-circle", group.GroupName, `Welcome to ${group.GroupName}`);
         }
     }
 
-    $('#searchBar').on("keyup click", function () {
-        searchFriend(($(this).val().trim() == "") ? "ktl16602" : $(this).val().trim());
+    //search navbar
+    $('.navbar #searchBar').on("keyup click", function () {
+        searchFriend('navbar',($(this).val().trim() == "") ? "ktl16602" : $(this).val().trim());
+    })
+    $('.box-add-friend #searchFriend').on("keyup click", function () {
+        searchFriend('box-add-friend', ($(this).val().trim() == "") ? "ktl16602" : $(this).val().trim());
     })
 
-    $('.search-result').on('click', '.result-item', function () {
+    $('.navbar .search-result').on('click', '.result-item', function () {
         var id = $(this).children('input').val();
         var groupId = createGroup(id);
         if (groupId != "") {
@@ -285,6 +345,25 @@
         $('.type-bar label,button').removeClass('active');
     })
 
+    
+    //search add friend
+    $('.page-container').on('click', '.add-member', function () {
+        var groupId = $(this).parents('.options').prevAll().last().val();
+        var groupName = $(this).parents('.options').prevAll().last().next().children(".tooltip").text();
+        $('.box-add-friend input[name="groupId"]').val(groupId);
+        $('.box-add-friend .name-group').text(groupName + " - Add friend");
+        $('.box-add-friend').addClass('active');
+        $('.box-add-friend input').focus();
+    })
+    $('.box-add-friend').on('click', '.uil-times', function () {
+        $('.box-add-friend').removeClass('active');
+    })
+    $('.box-add-friend').on('click', '.result-item', function () {
+        var groupId = $(this).parents(".search-bar").prevAll().last().val();
+        var memberId = $(this).children('input').val();
+        addMember(groupId, memberId);
+    })
+    //leave group
     $('.page-container').on('click', '.uil-sign-out-alt', function () {
         var groupId = $(this).parent().prevAll().last().val();
         var groupName = $(this).parent().prevAll().last().next().children(".tooltip").text();
@@ -292,12 +371,12 @@
         $('.box-confirm-leave .name-group').text(groupName);
         $('.box-confirm-leave').addClass("active");
     })
+
     // actions box-confirm-leave
     $('.box-confirm-leave .cancel').on('click', function () {
         $('.box-confirm-leave').removeClass("active");
     })
     $('.box-confirm-leave .accept').on('click', function () {
-        console.log($(this).parent().prevAll().last().val())
         var groupId = $(this).parent().prevAll().last().val();
         $.ajax({
             type: "POST",
@@ -359,6 +438,7 @@
                 FR.readAsDataURL(el.prop('files')[0]);
             }
         } else {
+            el[0].value = "";
             addAlert("warning", "info-circle", "System", "Image size <= 2MB");
         }
 
@@ -430,11 +510,14 @@
         //    var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
         //    getConversation(groupId, time, true);            
         //}
-        //if ($(this)[0].scrollTop) {
-        //    var groupId = $(this).parent().children('#groupId').val();
-        //    var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
-        //    getConversation(groupId, time, true);
-        //};
+        //console.log($(this)[0].scrollTop);
+        if ($(this)[0].scrollTop == 0) {
+            var oldScroll = $(this)[0].scrollHeight;
+            var groupId = $(this).parent().children('#groupId').val();
+            var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
+            getConversation(groupId, time, true);
+            $(this)[0].scrollTop = $(this)[0].scrollHeight - oldScroll;
+        };
     })
 })
 

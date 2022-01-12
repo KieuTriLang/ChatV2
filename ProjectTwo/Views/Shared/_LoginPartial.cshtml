@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNet.Identity
+﻿@*@using Microsoft.AspNet.Identity*@
+@model string
 @if (Request.IsAuthenticated)
 {
     using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
@@ -8,7 +9,7 @@
     <ul class="nav-log">
         <li style="transform:rotateY(180deg);"><a href="javascript:document.getElementById('logoutForm').submit()"><i class="uil uil-signout"></i></a></li>
         <li>
-            @Html.ActionLink(User.Identity.GetUserName(), "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage" })
+            @Html.ActionLink(Model, "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage" })
         </li>
     </ul>
     }

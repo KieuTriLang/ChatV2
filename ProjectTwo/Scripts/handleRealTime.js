@@ -75,6 +75,9 @@ function renderMessageRealTime(groupId, senderId, message, when) {
     }
 
     if ($(`.${groupId} .content-chat section`).length == 0) {
+        if (!checkDay(when, time)) {
+            $(`.${groupId} .content-chat`).append('<p class="time">Today</p>');
+        }
         if (senderId != $('.type-bar #userId').val()) {
             var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
             $(`.${groupId} .content-chat`).append(person);
@@ -120,7 +123,11 @@ $(document).ready(function () {
             $(`.${toGroup} .content-chat`).animate({ scrollTop: $(`.${toGroup} .content-chat`)[0].scrollHeight }, 700);
         }
     };
-
+    $.connection.hub.disconnected(function () {
+        setTimeout(function () {
+            $.connection.hub.start();
+        }, 5000); // Restart connection after 5 seconds.
+    });
     // Start the connection.
     $.connection.hub.start().done(function () {
         $('#type-bar').submit(function (e) {
@@ -204,6 +211,7 @@ $(document).ready(function () {
                     FR.readAsDataURL(this.files[0]);
                 }
             } else {
+                $("#sendImage").val("");
                 addAlert("warning", "info-circle", "System", "Image size <= 2MB");
             }
         }, false);

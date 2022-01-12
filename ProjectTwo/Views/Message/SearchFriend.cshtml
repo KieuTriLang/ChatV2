@@ -17,7 +17,10 @@
                     @item.UserName.Substring(0, 2)
                 }
             </div>
-            <span class="tooltip">@item.UserName <br /><small>@item.Email</small></span>
+            @{ 
+                string userName = item.DisplayName != null ? item.DisplayName : item.UserName;
+            }
+            <span class="tooltip">@userName <br /><small>@item.Email</small></span>
         </li>
     }
 }
