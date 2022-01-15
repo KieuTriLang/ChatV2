@@ -83,7 +83,7 @@ body{
     text-align:center;
     margin: 0 0 0 auto;
 }
-.detail-user li i:hover{
+.detail-user li a:hover{
     cursor:pointer;
     color:var(--hover-color);
 }

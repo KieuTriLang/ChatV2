@@ -67,7 +67,7 @@ namespace ProjectTwo.Controllers
                 };
                 _db.Groups.Add(group);
                 _db.SaveChanges();
-                if(!AddToGroup(groupId, User.Identity.GetUserId()) && !AddToGroup(groupId, userId))
+                if(!AddToGroup(groupId, User.Identity.GetUserId()) || !AddToGroup(groupId, userId))
                 {
                     return Json(new { status = "notok"});
                 }
@@ -112,10 +112,18 @@ namespace ProjectTwo.Controllers
             ApplicationUser record = group.Members.Where(m => m.Id == memberId).FirstOrDefault();
             if (group != null && record == null)
             {
-                var user = _db.Users.Find(memberId);
-                _db.Users.Attach(user);
-                group.Members.Add(user);
-                _db.SaveChanges();
+                try
+                {
+                    var user = _db.Users.Find(memberId);
+                    _db.Users.Attach(user);
+                    group.Members.Add(user);
+                    _db.SaveChanges();
+                }
+                catch(Exception ex)
+                {
+                    return false;
+                }
+                
                 return true;
             }
             return false;

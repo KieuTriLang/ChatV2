@@ -211,11 +211,6 @@
         if (checkDay(when, time) || checkDay(time, new Date().toISOString())) {
             $(`.${groupId} .content-chat .time`).first().remove();
         }
-        //console.log("compare :" + when + " vs " + time);
-        //console.log(checkDay(when, time));
-        //console.log(!checkDay(when, time));
-        //console.log(checkDay(when, new Date()));
-
         var id = '<input type="hidden" name="personId" value="' + senderId + '"/>';
         var user = getInfoUser(senderId);
         var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
