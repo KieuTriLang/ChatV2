@@ -181,41 +181,31 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202201031304380_initDb.cs" />
-    <Compile Include="Migrations\202201031304380_initDb.Designer.cs">
-      <DependentUpon>202201031304380_initDb.cs</DependentUpon>
+    <Compile Include="Migrations\202201151605349_initDB.cs" />
+    <Compile Include="Migrations\202201151605349_initDB.Designer.cs">
+      <DependentUpon>202201151605349_initDB.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202201031604019_addNewRelation.cs" />
-    <Compile Include="Migrations\202201031604019_addNewRelation.Designer.cs">
-      <DependentUpon>202201031604019_addNewRelation.cs</DependentUpon>
+    <Compile Include="Migrations\202201160110272_changeRelationMemberGroup.cs" />
+    <Compile Include="Migrations\202201160110272_changeRelationMemberGroup.Designer.cs">
+      <DependentUpon>202201160110272_changeRelationMemberGroup.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202201031612005_addst.cs" />
-    <Compile Include="Migrations\202201031612005_addst.Designer.cs">
-      <DependentUpon>202201031612005_addst.cs</DependentUpon>
+    <Compile Include="Migrations\202201171145219_addCreatorId.cs" />
+    <Compile Include="Migrations\202201171145219_addCreatorId.Designer.cs">
+      <DependentUpon>202201171145219_addCreatorId.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202201060548594_changeDataTypeImage.cs" />
-    <Compile Include="Migrations\202201060548594_changeDataTypeImage.Designer.cs">
-      <DependentUpon>202201060548594_changeDataTypeImage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202201061059095_changeDatatypeWhen.cs" />
-    <Compile Include="Migrations\202201061059095_changeDatatypeWhen.Designer.cs">
-      <DependentUpon>202201061059095_changeDatatypeWhen.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202201101423470_addImageCode.cs" />
-    <Compile Include="Migrations\202201101423470_addImageCode.Designer.cs">
-      <DependentUpon>202201101423470_addImageCode.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202201120817108_addDisplayName.cs" />
-    <Compile Include="Migrations\202201120817108_addDisplayName.Designer.cs">
-      <DependentUpon>202201120817108_addDisplayName.cs</DependentUpon>
+    <Compile Include="Migrations\202201210406538_listSeenColumn.cs" />
+    <Compile Include="Migrations\202201210406538_listSeenColumn.Designer.cs">
+      <DependentUpon>202201210406538_listSeenColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageDbModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
-    <Compile Include="ModelViews\GroupVM.cs" />
+    <Compile Include="ModelViews\ConnectedUser.cs" />
+    <Compile Include="ModelViews\ManageOnline.cs" />
     <Compile Include="ModelViews\MessageVM.cs" />
+    <Compile Include="ModelViews\SeenMessageVM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -233,6 +223,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="logo.ico" />
     <Content Include="Scripts\Base.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -288,6 +279,9 @@
     <Content Include="Views\Message\SearchFriend.cshtml" />
     <Content Include="Views\Message\RenderPage.cshtml" />
     <Content Include="Views\Message\RenderNavItem.cshtml" />
+    <Content Include="Views\Message\RenderPageInvite.cshtml" />
+    <Content Include="Views\Message\RenderMembers.cshtml" />
+    <Content Include="Views\Message\RenderHeaderPage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -306,26 +300,17 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202201031304380_initDb.resx">
-      <DependentUpon>202201031304380_initDb.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202201151605349_initDB.resx">
+      <DependentUpon>202201151605349_initDB.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201031604019_addNewRelation.resx">
-      <DependentUpon>202201031604019_addNewRelation.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202201160110272_changeRelationMemberGroup.resx">
+      <DependentUpon>202201160110272_changeRelationMemberGroup.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201031612005_addst.resx">
-      <DependentUpon>202201031612005_addst.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202201171145219_addCreatorId.resx">
+      <DependentUpon>202201171145219_addCreatorId.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201060548594_changeDataTypeImage.resx">
-      <DependentUpon>202201060548594_changeDataTypeImage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201061059095_changeDatatypeWhen.resx">
-      <DependentUpon>202201061059095_changeDatatypeWhen.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201101423470_addImageCode.resx">
-      <DependentUpon>202201101423470_addImageCode.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201120817108_addDisplayName.resx">
-      <DependentUpon>202201120817108_addDisplayName.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202201210406538_listSeenColumn.resx">
+      <DependentUpon>202201210406538_listSeenColumn.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

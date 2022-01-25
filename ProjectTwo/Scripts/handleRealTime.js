@@ -1,4 +1,67 @@
-﻿function getInfoUser(userId) {
+﻿
+function renderSeen(groupId, message, userId) {
+    let item = $(`.${groupId} .content-chat .message-item`);
+    message.When = new Date(message.When).toLocaleString('en-US', { hour12: true });
+    item.each(function () {
+        var smallerTime = new Date($(this).children('input').val()).getTime() < new Date(message.When).getTime();
+        var equalTime = new Date($(this).children('input').val()).getTime() == new Date(message.When).getTime();
+        if (smallerTime) {
+            $(this).next().children(`.${userId}`).remove();
+        }
+        if (($(this).text() == message.Content || $(this).children().hasClass("image"))  && equalTime) {
+            //console.log(!compareDate)
+            var user = getInfoUser(userId);
+            var avatar = '';
+            if (user.avatar != null) {
+                avatar = `<div class="image ${userId}"><img src="${user.avatar}"/></div>`;
+            } else {
+                avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
+            }
+
+            //console.log($(this).next().children().hasClass(userId));
+            if (!$(this).next().children().hasClass(userId)) {
+                $(this).next().append(avatar);
+            }
+        }
+
+    })
+}
+
+function convertLink(input) {
+
+    let text = input;
+    const linksFound = text.match(/(?:www|https?)[^\s]+/g);
+    const aLink = [];
+
+    if (linksFound != null) {
+
+        for (let i = 0; i < linksFound.length; i++) {
+            let replace = linksFound[i];
+            if (!(linksFound[i].match(/(http(s?)):\/\//))) { replace = 'http://' + linksFound[i] }
+            let linkText = replace.split('/')[2];
+            if (linkText.substring(0, 3) == 'www') { linkText = linkText.replace('www.', '') }
+            if (linkText.match(/youtu/)) {
+
+                let youtubeID = replace.split('/').slice(-1)[0];
+                aLink.push('<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/' + youtubeID + '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>')
+            }
+            else if (linkText.match(/vimeo/)) {
+                let vimeoID = replace.split('/').slice(-1)[0];
+                aLink.push('<div class="video-wrapper"><iframe src="https://player.vimeo.com/video/' + vimeoID + '" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div>')
+            }
+            else {
+                aLink.push('<a href="' + replace + '" target="_blank">' + replace + '</a>');
+            }
+            text = text.split(linksFound[i]).map(item => { return aLink[i].includes('iframe') ? item.trim() : item }).join(aLink[i]);
+        }
+        return text;
+    }
+    else {
+        return input;
+    }
+}
+
+function getInfoUser(userId) {
     var user = {
         id: "",
         userName: "",
@@ -28,7 +91,7 @@ function getImage(groupId, imageCode) {
     $.ajax({
         type: "GET",
         url: "/Message/GetImage",
-        async:false,
+        async: false,
         data: jQuery.param({ groupId: groupId, imageCode: imageCode }),
         success: function (res) {
             image = res;
@@ -39,28 +102,52 @@ function getImage(groupId, imageCode) {
     })
     return image;
 }
+
 function renderMessageRealTime(groupId, senderId, message, when) {
-    var time = $(`.${groupId} .content-chat .message-item`).last().children('input').val();
-    var id = '<input type="hidden" name="personId" value="' + senderId + '"/>';
-    var user = getInfoUser(senderId);
-    var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
-    var userName = '<li class="user-name"><small>' + user.userName + '</small></li>';
-    var avatar = '';
-    if (user.avatar != null) {
-        avatar = '<div class="image"><img src="' + user.avatar + '"/></div>';
-    } else {
-        avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
-    }
+    when = new Date(when).toLocaleString('en-US', { hour12: true });
     var image = getImage(groupId, message);
-    var partMessage = (image != "Pchat-image") ? '<li class="message-item picture">' + timeSend + '<div class="image"><img src="' + image + '"/></div></li>' : '<li class="message-item">' + timeSend + message + '</li>';
-    //console.log(user.avatar);
-    //console.log(avatar);
-    var contentMessage = '<ul class="content-message">' + userName + partMessage + '</ul>';
-    //console.log($(`.${groupId} .content-chat section`));
-    if ($(`.${groupId} .content-chat section`).length > 0) {
-        if ($(`.${groupId} .content-chat section`).last().hasClass(senderId) && checkDay(when, time)) {
-            $(`.${groupId} .content-chat section`).last().children('ul').append(partMessage);
+    var regex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
+    message = message.match(regex) != null ? convertLink(message) : message;
+    var time = $(`.${groupId} .content-chat .message-item`).last().children('input').val();
+    var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
+    if (senderId == "PchatSystem") {
+        if (!checkDay(when,time)) {
+            $(`.${groupId} .content-chat`).append('<p class="time">Today</p>');
+        }
+        $(`.${groupId} .content-chat`).append('<p class="message-item system">' + timeSend + message + '</p>' + '<li class="seen-user"></li>');
+    } else {        
+        var id = '<input type="hidden" name="personId" value="' + senderId + '"/>';
+        var user = getInfoUser(senderId);        
+        var userName = '<li class="user-name"><small>' + user.userName + '</small></li>';
+        var avatar = '';
+        if (user.avatar != null) {
+            avatar = '<div class="image"><img src="' + user.avatar + '"/></div>';
         } else {
+            avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
+        }        
+        var partMessage = (image != "Pchat-image") ? '<li class="message-item picture">' + timeSend + '<div class="image"><img src="' + image + '"/></div></li>' : '<li class="message-item">' + timeSend + message + '</li>';
+        //console.log(user.avatar);
+        //console.log(avatar);
+        var contentMessage = '<ul class="content-message">' + userName + partMessage + '<li class="seen-user"></li></ul>';
+        //console.log($(`.${groupId} .content-chat section`));
+        if ($(`.${groupId} .content-chat section`).length > 0) {
+            if ($(`.${groupId} .content-chat section`).last().hasClass(senderId) && checkDay(when, time)) {
+                $(`.${groupId} .content-chat section`).last().children('ul').append(partMessage + '<li class="seen-user"></li>');
+            } else {
+                if (!checkDay(when, time)) {
+                    $(`.${groupId} .content-chat`).append('<p class="time">Today</p>');
+                }
+                if (senderId != $('.type-bar #userId').val()) {
+                    var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
+                    $(`.${groupId} .content-chat`).append(person);
+                } else {
+                    var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
+                    $(`.${groupId} .content-chat`).append(person);
+                }
+            }
+        }
+
+        if ($(`.${groupId} .content-chat section`).length == 0) {
             if (!checkDay(when, time)) {
                 $(`.${groupId} .content-chat`).append('<p class="time">Today</p>');
             }
@@ -72,20 +159,9 @@ function renderMessageRealTime(groupId, senderId, message, when) {
                 $(`.${groupId} .content-chat`).append(person);
             }
         }
+        return true;
     }
 
-    if ($(`.${groupId} .content-chat section`).length == 0) {
-        if (!checkDay(when, time)) {
-            $(`.${groupId} .content-chat`).append('<p class="time">Today</p>');
-        }
-        if (senderId != $('.type-bar #userId').val()) {
-            var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
-            $(`.${groupId} .content-chat`).append(person);
-        } else {
-            var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
-            $(`.${groupId} .content-chat`).append(person);
-        }
-    }
 }
 
 function checkDay(day1, day2) {
@@ -115,19 +191,33 @@ $(document).ready(function () {
     var sender = $('.type-bar #userId').val();
     var receiver = "";
     var chat = $.connection.chatHub;
-    // Create a function that the hub can call back to display messages.
-    chat.client.receiveMessage = function (toGroup, fromPerson, message, when) {
-        renderMessageRealTime(toGroup, fromPerson, message, when);        
-        var contentChat = $(`.${toGroup} .content-chat`);
-        if ((contentChat[0].scrollHeight - 20) - (contentChat.height() + contentChat[0].scrollTop) <= 300) {
-            $(`.${toGroup} .content-chat`).animate({ scrollTop: $(`.${toGroup} .content-chat`)[0].scrollHeight }, 700);
-        }
-    };
     $.connection.hub.disconnected(function () {
         setTimeout(function () {
             $.connection.hub.start();
         }, 5000); // Restart connection after 5 seconds.
     });
+    // Create a function that the hub can call back to display messages.
+    chat.client.receiveMessage = function (toGroup, fromPerson, message, when) {
+        if (renderMessageRealTime(toGroup, fromPerson, message, when)) {
+            var messObj = {
+                Content: message,
+                When: when
+            }
+            if (fromPerson != sender) {
+                renderSeen(toGroup, messObj, fromPerson);
+                if ($(`.link.${toGroup}`).hasClass("unread")) {
+                    var num = parseInt($(`.link.${toGroup} .unread-item`).text());
+                    $(`.link.${toGroup} .unread-item`).text(num + 1);
+                } else {
+                    $(`.link.${toGroup}`).addClass("unread");
+                }
+            }
+        };
+        var contentChat = $(`.${toGroup} .content-chat`);
+        if (((contentChat[0].scrollHeight - 20) - (contentChat.height() + contentChat[0].scrollTop) <= 350) && fromPerson != "PchatSystem") {
+            $(`.${toGroup} .content-chat`).animate({ scrollTop: $(`.${toGroup} .content-chat`)[0].scrollHeight }, 700);
+        }
+    };
     // Start the connection.
     $.connection.hub.start().done(function () {
         $('#type-bar').submit(function (e) {
@@ -152,9 +242,9 @@ $(document).ready(function () {
                         async: false,
                         data: jQuery.param({ info: message }),
                         success: function (res) {
-                            if (res == "True") {
+                            if (res.status != "not ok") {
                                 // Call the Send method on the hub. 
-                                chat.server.sendMessage(sender, receiver, $('#message').val(), message.When);
+                                chat.server.sendMessage(res.SenderId, res.GroupId, res.Content, res.When);
                                 var contentChat = $(`.${receiver} .content-chat`);
                                 if ((contentChat[0].scrollHeight - 20) - (contentChat.height() + contentChat[0].scrollTop) <= 300) {
                                     $(`.${receiver} .content-chat`).animate({ scrollTop: $(`.${receiver} .content-chat`)[0].scrollHeight }, 700);
@@ -165,7 +255,7 @@ $(document).ready(function () {
                             console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
                         }
                     })
-                }                
+                }
             }
             $('#message').val('');
         });
@@ -193,8 +283,8 @@ $(document).ready(function () {
                                 async: false,
                                 data: jQuery.param({ info: message }),
                                 success: function (res) {
-                                    if (res != "wrong") {
-                                        chat.server.sendMessage(sender, receiver, res, message.When);
+                                    if (res.status != "not ok") {
+                                        chat.server.sendMessage(sender, receiver, res.ImageCode, res.When);
                                         $("#sendImage").val("");
                                         var contentChat = $(`.${receiver} .content-chat`);
                                         if ((contentChat[0].scrollHeight - 20) - (contentChat.height() + contentChat[0].scrollTop) <= 500) {
@@ -206,7 +296,7 @@ $(document).ready(function () {
                                     console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
                                 }
                             })
-                        }                        
+                        }
                     };
                     FR.readAsDataURL(this.files[0]);
                 }

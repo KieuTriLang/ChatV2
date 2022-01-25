@@ -16,9 +16,10 @@ namespace ProjectTwo.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                IEnumerable<Group> groups = _db.Users.Find(User.Identity.GetUserId()).Groups;
+                string userId = User.Identity.GetUserId();
+                IEnumerable<MemberGroup> memberGroups = _db.MemberGroups.Where(mg=>mg.Member.Id == userId).ToList();
                 ViewBag.UserName = _db.Users.Find(User.Identity.GetUserId()).DisplayName;
-                return View(groups);
+                return View(memberGroups);
             }
             else
             {

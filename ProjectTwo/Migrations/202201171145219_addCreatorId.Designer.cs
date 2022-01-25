@@ -7,13 +7,13 @@ namespace ProjectTwo.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class changeDataTypeImage : IMigrationMetadata
+    public sealed partial class addCreatorId : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(changeDataTypeImage));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(addCreatorId));
         
         string IMigrationMetadata.Id
         {
-            get { return "202201060548594_changeDataTypeImage"; }
+            get { return "202201171145219_addCreatorId"; }
         }
         
         string IMigrationMetadata.Source

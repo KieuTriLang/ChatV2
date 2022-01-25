@@ -7,13 +7,13 @@ namespace ProjectTwo.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class addImageCode : IMigrationMetadata
+    public sealed partial class initDB : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(addImageCode));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(initDB));
         
         string IMigrationMetadata.Id
         {
-            get { return "202201101423470_addImageCode"; }
+            get { return "202201151605349_initDB"; }
         }
         
         string IMigrationMetadata.Source

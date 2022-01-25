@@ -1,4 +1,5 @@
-﻿$(document).ready(function () {
+﻿
+$(document).ready(function () {
     var chat = $.connection.chatHub;
     $.connection.hub.disconnected(function () {
         setTimeout(function () {
@@ -7,8 +8,11 @@
     });
     $.connection.hub.start().done(function () {
         [...document.querySelectorAll('.link')].forEach((item, i) => {
-            chat.server.joinGroup(item.children[0].value);
-            getConversation(item.children[0].value, new Date().toISOString());
+            if (!item.classList.contains("waiting-accept")) {
+                chat.server.joinGroup(item.children[0].value);
+                getConversation(item.children[0].value, new Date().toISOString());
+                getUnread(item.children[0].value);
+            }
         })
     });
     const container = document.querySelector('.page-container');
@@ -26,7 +30,7 @@
     })
 
     const changePage = (i) => {
-        overlay.style.animation = `slide 1s linear 1`;
+        overlay.style.animation = `slide 0.75s linear 1`;
         setTimeout(() => {
             $('.page').each(function () {
                 $(this).removeClass("active");
@@ -44,6 +48,7 @@
         })
     })
 
+    checkOnline();
     //fucntion 
     function getInfoUser(userId) {
         var user = {
@@ -90,8 +95,8 @@
         var month = dateObj.getUTCMonth() + 1;
         var day = dateObj.getUTCDate();
         var year = dateObj.getUTCFullYear();
-        var hour = (dateObj.getHours()<10) ? 0 + dateObj.getHours(): dateObj.getHours();
-        var minute = (dateObj.getMinutes()<10) ? 0 + dateObj.getMinutes(): dateObj.getMinutes();
+        var hour = (dateObj.getHours() < 10) ? 0 + dateObj.getHours() : dateObj.getHours();
+        var minute = (dateObj.getMinutes() < 10) ? 0 + dateObj.getMinutes() : dateObj.getMinutes();
 
         return newdate = (new Date().getUTCDate() - dateObj.getUTCDate() == 1) ? `${hour}:${minute} Yesterday` : `${hour}:${minute} ${day}/${month}/${year}`;
     }
@@ -105,7 +110,7 @@
             $(this).removeClass("active");
         });
         changePage(i);
-        links[i].classList.add("active");        
+        links[i].classList.add("active");
     }
 
     function getPageLinks() {
@@ -118,7 +123,7 @@
         })
     }
 
-    function searchFriend(target,keyword) {
+    function searchFriend(target, keyword) {
         $.ajax({
             type: "GET",
             url: "/Message/SearchFriend",
@@ -144,7 +149,7 @@
                     chat.server.sendRequest(res1.userId, res1.groupId);
                     chat.server.joinGroup(res1.groupId);
                     groupId = res1.groupId;
-                    addAlert("success","check","System","Create group successfully")
+                    addAlert("success", "check", "System", "Create group successfully")
                 }
             },
             error: function (err) {
@@ -177,12 +182,12 @@
         return group;
     }
 
-    function renderListGroup(id) {
+    function renderListGroup(id, active) {
         $.ajax({
             type: "GET",
             url: "/Message/RenderPage",
             async: false,
-            data: jQuery.param({ groupId: id, active: ($('.page').length == 0) ? "active" : "" }),
+            data: jQuery.param({ groupId: id, active: active }),
             success: function (res) {
                 $('.page-container').prepend(res);
                 getConversation(id, new Date().toISOString());
@@ -195,7 +200,7 @@
             type: "GET",
             url: "/Message/RenderNavItem",
             async: false,
-            data: jQuery.param({ groupId: id }),
+            data: jQuery.param({ groupId: id, active: active }),
             success: function (res) {
                 $('.nav-list').prepend(res);
             },
@@ -206,14 +211,51 @@
         getPageLinks();
     }
 
+    function convertLink(input) {
+
+        let text = input;
+        const linksFound = text.match(/(?:www|https?)[^\s]+/g);
+        const aLink = [];
+
+        if (linksFound != null) {
+
+            for (let i = 0; i < linksFound.length; i++) {
+                let replace = linksFound[i];
+                if (!(linksFound[i].match(/(http(s?)):\/\//))) { replace = 'http://' + linksFound[i] }
+                let linkText = replace.split('/')[2];
+                if (linkText.substring(0, 3) == 'www') { linkText = linkText.replace('www.', '') }
+                if (linkText.match(/youtu/)) {
+
+                    let youtubeID = replace.split('/').slice(-1)[0];
+                    aLink.push('<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/' + youtubeID + '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>')
+                }
+                else if (linkText.match(/vimeo/)) {
+                    let vimeoID = replace.split('/').slice(-1)[0];
+                    aLink.push('<div class="video-wrapper"><iframe src="https://player.vimeo.com/video/' + vimeoID + '" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div>')
+                }
+                else {
+                    aLink.push('<a href="' + replace + '" target="_blank">' + replace + '</a>');
+                }
+                text = text.split(linksFound[i]).map(item => { return aLink[i].includes('iframe') ? item.trim() : item }).join(aLink[i]);
+            }
+            return text;
+        }
+        else {
+            return input;
+        }
+    }
+
     function renderMessage(groupId, senderId, message, when) {
+        var regex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
+
+        message = message.match(regex) != null ? convertLink(message) : message;
         var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
+        var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
         if (checkDay(when, time) || checkDay(time, new Date().toISOString())) {
             $(`.${groupId} .content-chat .time`).first().remove();
         }
         var id = '<input type="hidden" name="personId" value="' + senderId + '"/>';
         var user = getInfoUser(senderId);
-        var timeSend = '<input type="hidden" name="timeSend" value="' + when + '"/>';
         var userName = '<li class="user-name"><small>' + user.userName + '</small></li>';
         var avatar = '';
         if (user.avatar != null) {
@@ -221,18 +263,37 @@
         } else {
             avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
         }
+
         var partMessage = (new RegExp('^data:image').test(message)) ? '<li class="message-item picture">' + timeSend + '<div class="image"><img src="' + message + '"/></div>' + '</li>' : '<li class="message-item">' + timeSend + message + '</li>';
         var contentMessage = '<ul class="content-message">' + userName + partMessage + '</ul>';
 
         if ($(`.${groupId} .content-chat section`).length > 0) {
             if ($(`.${groupId} .content-chat section`).first().hasClass(senderId) && checkDay(when, time)) {
                 $(`.${groupId} .content-chat section`).first().children('ul').children('.message-item').first().before(partMessage);
-            } else {                
-                if (!checkDay(when, time) && checkDay(time,new Date().toISOString())) {
+            } else {
+                if (!checkDay(when, time) && checkDay(time, new Date().toISOString())) {
                     $(`.${groupId} .content-chat`).prepend('<p class="time">Today</p>');
                 }
+                if (senderId == "PchatSystem") {
+                    $(`.${groupId} .content-chat`).prepend('<p class="message-item system">' + timeSend + message + '</p>');
+                } else {
+                    if (senderId != $('.type-bar #userId').val()) {
+                        var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
+                        $(`.${groupId} .content-chat`).prepend(person);
+                    } else {
+                        var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
+                        $(`.${groupId} .content-chat`).prepend(person);
+                    }
+                }
+            }
+        }
+
+        if ($(`.${groupId} .content-chat section`).length == 0) {
+            if (senderId == "PchatSystem") {
+                $(`.${groupId} .content-chat`).prepend('<p class="message-item system">' + timeSend + message + '</p>');
+            } else {
                 if (senderId != $('.type-bar #userId').val()) {
-                    var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';                                       
+                    var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
                     $(`.${groupId} .content-chat`).prepend(person);
                 } else {
                     var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
@@ -241,21 +302,12 @@
             }
         }
 
-        if ($(`.${groupId} .content-chat section`).length == 0) {
-            if (senderId != $('.type-bar #userId').val()) {
-                var person = '<section class="person ' + senderId + '">' + id + avatar + contentMessage + '</section>';
-                $(`.${groupId} .content-chat`).prepend(person);
-            } else {
-                var person = '<section class="me ' + senderId + '">' + contentMessage + '</section>';
-                $(`.${groupId} .content-chat`).prepend(person);
-            }
-        }
-        if (checkDay(when,new Date().toISOString())) {
+        if (checkDay(when, new Date().toISOString())) {
             $(`.${groupId} .content-chat`).prepend('<p class="time">Today</p>');
         } else {
             $(`.${groupId} .content-chat`).prepend('<p class="time">' + convertTimeString(when) + '</p>');
         }
-        
+
     }
 
     function getConversation(groupId, lastTimeSend, loadOlder = false) {
@@ -270,9 +322,10 @@
                     res.forEach(function (item) {
                         renderMessage(item.GroupId, item.SenderId, item.Content, item.When);
                     })
+                    getSeen(groupId);
                     if (!loadOlder) {
                         scrollToBottom(`.${res[0].GroupId} .content-chat`);
-                    }                    
+                    }
                 }
             },
             error: function (err) {
@@ -281,7 +334,7 @@
         })
     }
 
-    function addAlert(type,style,from,message) {
+    function addAlert(type, style, from, message) {
         var alertContent = '<div class="alert-content"><p class="from">' + from + '</p><p class="alert-details">' + message + "</p></div>";
         var icon = `<i class="uil uil-${style} ${type}"></i>`;
         $('<div class="alert-item"></div>').append(icon + alertContent).appendTo('.box-alert').addClass("active").on('animationend', function () {
@@ -297,8 +350,9 @@
             data: jQuery.param({ groupId: groupId, memberId: memberId }),
             success: function (res) {
                 if (res == "True") {
-                    chat.server.sendRequest(memberId,groupId);
-                    addAlert("success", "check", "System", "Add successfully");
+                    chat.server.sendRequest(memberId, groupId);
+                    chat.server.sendUpdate(groupId);
+                    addAlert("success", "check", "System", "Invite successfully");
                 } else {
                     addAlert("warning", "info-circle", "System", "This member has joined");
                 }
@@ -309,20 +363,280 @@
         })
     }
 
-    // -------
+    function acceptInvite(groupId) {
+        $.ajax({
+            type: "POST",
+            url: "/Message/AcceptInvite",
+            async: false,
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                if (res == "True") {
+                    $(`.page-container`).children(`.page.${groupId}`).remove();
+                    $(`.nav-list`).children(`.link.${groupId}`).remove();
+                    chat.server.joinGroup(groupId);
+                    chat.server.sendMessage("PchatSystem", groupId, $('.navbar .nav-log .user-name').text() + " joined group", new Date().toISOString());
+                    renderListGroup(groupId, "active");
+                    $(`.page.${groupId} .message-item.system`).last().remove();
+                    chat.server.sendUpdate(groupId);
+                    var group = getInfoGroup(groupId)
+                    addAlert("success", "info-circle", group.GroupName, `Welcome to ${group.GroupName}`);                    
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
 
-    chat.client.receiveRequest = function (toPerson, groupId) {
-        if (toPerson == $('.type-bar #userId').val()) {
-            chat.server.joinGroup(groupId);
-            renderListGroup(groupId);
-            var group = getInfoGroup(groupId);
-            addAlert("success", "info-circle", group.GroupName, `Welcome to ${group.GroupName}`);
+    function declineInvite(groupId) {
+        $.ajax({
+            type: "POST",
+            url: "/Message/DeclineInvite",
+            async: false,
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                if (res == "True") {
+                    $(`.page.${groupId}`).remove();
+                    $(`.link.${groupId}`).remove();
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
+    function checkOnline() {
+        $.ajax({
+            type: "GET",
+            url: "/Message/CheckOnline",
+            success: function (res) {
+                res.forEach(function (item) {
+                    renderOnline(item);
+                })
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
+    function renderOnline(group) {
+        $(`.nav-list .link.${group.GroupId}`).removeClass("online").addClass(group.IsOnline ? "online" : "");
+        $(`.page-container .page.${group.GroupId}`).removeClass("online").addClass(group.IsOnline ? "online" : "");
+        group.UserOnlines.forEach(function (item) {
+            $(`.page-container .page.${group.GroupId} .options .group .members .member-item.${item.UserId}`).removeClass("online").addClass(item.IsOnline ? "online" : "");
+            $(`.content-chat section.${item.UserId}`).removeClass("online").addClass(item.IsOnline ? "online" : "");
+        })
+    }
+
+    function updateGroup(groupId) {
+        $.ajax({
+            type: "GET",
+            url: "/Message/RenderHeaderPage",
+            data: jQuery.param({ groupId: groupId }),
+            async: false,
+            success: function (res) {
+                $(`.page.${groupId}`).children(".header-chat").before(res).remove();
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+
+        $.ajax({
+            type: "GET",
+            url: "/Message/RenderMembers",
+            data: jQuery.param({ groupId: groupId }),
+            async: false,
+            success: function (res) {
+                $(`.page.${groupId} .options .group`).children(".members").before(res).remove();
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+
+        var group = getInfoGroup(groupId);
+        var gImg = group.GroupImg == null ? group.GroupName.substring(0, 2) : `<img src="${group.GroupImg}">`;
+        $(`.link.${groupId}`).children('.image').empty().append(gImg);
+        $(`.link.${groupId}`).children('.tooltip').text(group.GroupName);
+    }
+
+    function kickMember(groupId, personId) {
+        $.ajax({
+            type: "POST",
+            url: "/Message/KickPerson",
+            async: false,
+            data: jQuery.param({ groupId: groupId, personId: personId }),
+            success: function (res) {
+                if (res == "True") {
+                    addAlert("success", "info-circle", "System", `Kick successfully`);
+                    $('.box-confirm-kick').removeClass("active");
+                    chat.server.sendKick(groupId, personId);
+                    chat.server.sendUpdate(groupId);
+                } else {
+                    addAlert("danger", "info-circle", "System", `You can't kick member`);
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
+    function changeHost(groupId, personId) {
+        $.ajax({
+            type: "POST",
+            url: "/Message/ChangeHost",
+            async: false,
+            data: jQuery.param({ groupId: groupId, toPerson: personId }),
+            success: function (res) {
+                if (res == "True") {
+                    addAlert("success", "info-circle", "System", `Change host successfully`);
+                    $('.box-confirm-host').removeClass("active");
+                    chat.server.sendUpdate(groupId);
+                } else {
+                    addAlert("danger", "info-circle", "System", `You can't change host`);
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
+    function resetBoxConfirm() {
+        $('.box-confirm').removeClass("active");
+    }
+
+    function renderSeen(groupId, message, userId) {
+        var readNum = 0;
+        var item = $(`.${groupId} .content-chat .message-item`);
+        item.each(function (index) {            
+            var smallerTime = new Date($(this).children('input').val()).getTime() < new Date(message.When).getTime();
+            var equalTime = new Date($(this).children('input').val()).getTime() == new Date(message.When).getTime();
+            if (smallerTime) {
+                $(this).next().children(`.${userId}`).remove();
+            }
+            //console.log(new Date($(this).children('input').val()).getTime()- new Date(message.When).getTime())
+            if (($(this).text() == message.Content || $(this).children().hasClass("image")) && equalTime) {
+                //console.log(!compareDate)
+                readNum = index;
+                var user = getInfoUser(userId);
+                var avatar = '';
+                if (user.avatar != null) {
+                    avatar = `<div class="image ${userId}"><img src="${user.avatar}"/></div>`;
+                } else {
+                    avatar = '<div class="image">' + user.userName.substring(0, 2) + '</div>';
+                }
+                
+                //console.log($(this).next().children().hasClass(userId));
+                if (!$(this).next().children().hasClass(userId)) {
+                    $(this).next().append(avatar);
+                }
+            }            
+        })
+        var unreadNum = item.length - (readNum + 1)
+        if ( unreadNum > 0) {
+
         }
     }
 
+    function getSeen(groupId) {
+        $.ajax({
+            type: "GET",
+            url: "/Message/GetSeen",
+            async: false,
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                var item = $(`.${groupId} .content-chat .message-item`);
+                item.each(function () {
+                    if (!$(this).next().hasClass("seen-user")) {
+                        $(this).after('<li class="seen-user"></li>')
+                    }
+                })
+                res.forEach(function (item) {
+                    renderSeen(item.GroupId, item.MessageSeen, item.UserId);
+                })
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
+    function getUnread(groupId) {
+        $.ajax({
+            type: "GET",
+            url: "/Message/GetUnRead",
+            async: false,
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                if (res.URNum > 0) {
+                    $(`.link.${groupId}`).addClass("unread");
+                    $(`.link.${groupId} .unread-item`).text(res.URNum);
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+    }
+
+    function updateSeen(groupId) {
+        var success = false;
+        $.ajax({
+            type: "POST",
+            url: "/Message/UpdateSeen",
+            async: false,
+            data: jQuery.param({ groupId: groupId }),
+            success: function (res) {
+                if (res == "True") {
+                    success = true;
+                }
+            },
+            error: function (err) {
+                console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
+            }
+        })
+        return success;
+    }
+    // -------
+
+    chat.client.receiveRequest = function (toPerson, groupId) {
+        var isActive = "";
+        $('.page').each(function () {
+            if (!$(this).hasClass("active") || $(this).hasClass(groupId)) {
+                isActive = "active";
+            }
+        })
+        if ($('.page').length == 0) {
+            isActive = "active";
+        }
+        if (toPerson == $('.type-bar #userId').val()) {
+            renderListGroup(groupId, isActive);
+            var group = getInfoGroup(groupId);
+            addAlert("success", "info-circle", group.GroupName, `Can you join with us?`);
+        }
+    }
+    chat.client.receiveUpdate = function (toGroup) {
+        updateGroup(toGroup);
+    }
+    chat.client.receiveKick = function (toGroup, toPerson) {
+        if (toPerson == $('.type-bar #userId').val()) {
+            $(`.page.${toGroup}`).remove();
+            $(`.link.${toGroup}`).remove();
+            var group = getInfoGroup(toGroup);
+            addAlert("warning", "info-circle", group.GroupName, `you were kicked out of the group`);
+        }
+    }
+    chat.client.receiveSeen = function (toGroup) {
+        getSeen(toGroup);
+    }
     //search navbar
     $('.navbar #searchBar').on("keyup click", function () {
-        searchFriend('navbar',($(this).val().trim() == "") ? "ktl16602" : $(this).val().trim());
+        searchFriend('navbar', ($(this).val().trim() == "") ? "ktl16602" : $(this).val().trim());
     })
     $('.box-add-friend #searchFriend').on("keyup click", function () {
         searchFriend('box-add-friend', ($(this).val().trim() == "") ? "ktl16602" : $(this).val().trim());
@@ -340,13 +654,13 @@
         $('.type-bar label,button').removeClass('active');
     })
 
-    
+
     //search add friend
     $('.page-container').on('click', '.add-member', function () {
         var groupId = $(this).parents('.options').prevAll().last().val();
         var groupName = $(this).parents('.options').prevAll().last().next().children(".tooltip").text();
         $('.box-add-friend input[name="groupId"]').val(groupId);
-        $('.box-add-friend .name-group').text(groupName + " - Add friend");
+        $('.box-add-friend .name-group').text(groupName + " - Invite friend");
         $('.box-add-friend').addClass('active');
         $('.box-add-friend input').focus();
     })
@@ -358,8 +672,11 @@
         var memberId = $(this).children('input').val();
         addMember(groupId, memberId);
     })
-    //leave group
+
+
+    //LEAVE GROUP
     $('.page-container').on('click', '.uil-sign-out-alt', function () {
+        resetBoxConfirm();
         var groupId = $(this).parent().prevAll().last().val();
         var groupName = $(this).parent().prevAll().last().next().children(".tooltip").text();
         $('.box-confirm-leave input[name="groupId"]').val(groupId);
@@ -379,18 +696,74 @@
             data: jQuery.param({ groupId: groupId }),
             success: function (res) {
                 if (res == "True") {
+                    chat.server.sendMessage("PchatSystem", groupId, $('.navbar .nav-log .user-name').text() + " left group", new Date().toISOString());
+                    chat.server.sendUpdate(groupId);
                     $(`.page-container .${groupId}`).remove();
                     $(`.nav-list .${groupId}`).remove();
                     getPageLinks();
-                    $('.box-confirm-leave').removeClass("active")
+                    $('.box-confirm-leave').removeClass("active");
+                    chat.server.leaveGroup(groupId);
+                } else {
+                    addAlert("danger", "info-circle", "System", `You need give host to other people`);
                 }
             },
             error: function (err) {
                 console.log("AJAX error in request: " + JSON.stringify(err, null, 2));
             }
-        })        
+        })
     })
 
+    //KICK MEMBER
+    $('.page-container').on('click', '.options .group .uil-minus-circle', function () {
+        resetBoxConfirm();
+        var groupId = $(this).parents(".page").children('input[name="groupId"]').val();
+        var personId = $(this).parent().prevAll().last().val();
+        var namePerson = $(this).parent().prev().text();
+        var groupName = $(this).parents().parents(".page").children('.header-chat').children(".tooltip").text();
+        $('.box-confirm-kick input[name="groupId"]').val(groupId);
+        $('.box-confirm-kick input[name="personId"]').val(personId);
+        $('.box-confirm-kick .name-group').text(groupName);
+        $('.box-confirm-kick .confirm-sentence').text(`Do you wanna kick ${namePerson}?`);
+        $('.box-confirm-kick').addClass("active");
+    })
+    // actions box-confirm-kick
+    $('.box-confirm-kick .cancel').on('click', function () {
+        $('.box-confirm-kick').removeClass("active");
+    })
+    $('.box-confirm-kick .accept').on('click', function () {
+        var groupId = $(this).parents('.box-confirm-kick').children('input[name="groupId"]').val();
+        var personId = $(this).parents('.box-confirm-kick').children('input[name="personId"]').val();
+        kickMember(groupId, personId);
+        var person = getInfoUser(personId);
+        chat.server.sendMessage("PchatSystem", groupId, $('.navbar .nav-log .user-name').text() + " kicked out " + person.userName, new Date().toISOString());
+    })
+
+    //CHANGE HOST
+    $('.page-container').on('click', '.options .group .uil-award', function () {
+        resetBoxConfirm();
+        var groupId = $(this).parents(".page").children('input[name="groupId"]').val();
+        var personId = $(this).parent().prevAll().last().val();
+        var namePerson = $(this).parent().prev().text();
+        var groupName = $(this).parents().parents(".page").children('.header-chat').children(".tooltip").text();
+        $('.box-confirm-host input[name="groupId"]').val(groupId);
+        $('.box-confirm-host input[name="personId"]').val(personId);
+        $('.box-confirm-host .name-group').text(groupName);
+        $('.box-confirm-host .confirm-sentence').text(`Do you wanna give host to ${namePerson}?`);
+        $('.box-confirm-host').addClass("active");
+    })
+    // actions box-confirm-host
+    $('.box-confirm-host .cancel').on('click', function () {
+        $('.box-confirm-host').removeClass("active");
+    })
+    $('.box-confirm-host .accept').on('click', function () {
+        var groupId = $(this).parents('.box-confirm-host').children('input[name="groupId"]').val();
+        var personId = $(this).parents('.box-confirm-host').children('input[name="personId"]').val();
+        changeHost(groupId, personId);
+        var person = getInfoUser(personId);
+        chat.server.sendMessage("PchatSystem", groupId, $('.navbar .nav-log .user-name').text() + " gave host to " + person.userName, new Date().toISOString());
+    })
+
+    //
     $('.type-bar #message').on('click', function () {
         $('.type-bar label,button').addClass('active');
     })
@@ -442,7 +815,7 @@
     //edit group
     $('.page-container').on('click', '.uil-pen', function () {
         $(this).next().toggleClass('active');
-        $(this).next().children().last().empty();        
+        $(this).next().children().last().empty();
     })
     $(".img-group").change(function () {
         convertToBase64($(this));
@@ -463,6 +836,7 @@
             success: function (res) {
                 if (res.status == "ok") {
                     el.removeClass('uil-spinner').addClass('uil-check').append('<small>Done</small>');
+                    chat.server.sendUpdate(group.GroupId);
                 }
             },
             error: function (err) {
@@ -494,18 +868,7 @@
         }
     })
 
-    var loading = 0;
     $('.page .content-chat').on('scroll', function () {
-        //console.log("calc:", ($(this).height() + $(this)[0].scrollTop) - ($(this)[0].scrollHeight - 20));
-        //console.log(new Date('2013-08-02T10:09:08Z'));
-        //var sh = ($(this)[0].scrollHeight - 20);
-        //var hst = ($(this).height() + $(this)[0].scrollTop);
-        //if (sh - hst >= sh - 450) {
-        //    var groupId = $(this).parent().children('#groupId').val();
-        //    var time = $(`.${groupId} .content-chat .message-item`).first().children('input').val();
-        //    getConversation(groupId, time, true);            
-        //}
-        //console.log($(this)[0].scrollTop);
         if ($(this)[0].scrollTop == 0) {
             var oldScroll = $(this)[0].scrollHeight;
             var groupId = $(this).parent().children('#groupId').val();
@@ -514,5 +877,42 @@
             $(this)[0].scrollTop = $(this)[0].scrollHeight - oldScroll;
         };
     })
+
+    //accept invite
+    $(document).on('click', '.page-invite .accept-options .uil-check', function () {
+        var groupId = $(this).parents('.page').children('input').val();
+        //console.log(groupId)
+        acceptInvite(groupId);
+    })
+    //decline invite
+    $(document).on('click', '.page-invite .accept-options .uil-times', function () {
+        var groupId = $(this).parents('.page').children('input').val();
+        declineInvite(groupId);
+    })
+
+    //click group
+    $(document).on('click', '.nav-list .link', function () {
+        var groupId = $(this).children('input[name="groupId"]').val();
+        if (updateSeen(groupId)) {
+            chat.server.sendSeen(groupId);
+            $(`.link.${groupId}`).removeClass("unread");
+        }
+    })
+    $(document).on('click', '.type-bar #message', function () {
+        var groupId = "";
+        $('.page').each(function () {
+            if ($(this).hasClass('active')) {
+                groupId = $(this).children('#groupId').val();
+            }
+        })
+        if (groupId != "") {
+            if (updateSeen(groupId)) {
+                chat.server.sendSeen(groupId);
+                $(`.link.${groupId}`).removeClass("unread");
+            }
+        }
+    })
+
+    setInterval(checkOnline, 3000);
 })
 

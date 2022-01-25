@@ -7,13 +7,13 @@ namespace ProjectTwo.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class addst : IMigrationMetadata
+    public sealed partial class listSeenColumn : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(addst));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(listSeenColumn));
         
         string IMigrationMetadata.Id
         {
-            get { return "202201031612005_addst"; }
+            get { return "202201210406538_listSeenColumn"; }
         }
         
         string IMigrationMetadata.Source

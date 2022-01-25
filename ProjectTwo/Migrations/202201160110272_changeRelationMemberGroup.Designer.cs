@@ -7,13 +7,13 @@ namespace ProjectTwo.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class addNewRelation : IMigrationMetadata
+    public sealed partial class changeRelationMemberGroup : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(addNewRelation));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(changeRelationMemberGroup));
         
         string IMigrationMetadata.Id
         {
-            get { return "202201031604019_addNewRelation"; }
+            get { return "202201160110272_changeRelationMemberGroup"; }
         }
         
         string IMigrationMetadata.Source

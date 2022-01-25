@@ -3,7 +3,7 @@ namespace ProjectTwo.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class initDb : DbMigration
+    public partial class initDB : DbMigration
     {
         public override void Up()
         {
@@ -13,7 +13,7 @@ namespace ProjectTwo.Migrations
                     {
                         GroupId = c.String(nullable: false, maxLength: 128),
                         GroupName = c.String(),
-                        GroupImg = c.Binary(),
+                        GroupImg = c.String(),
                     })
                 .PrimaryKey(t => t.GroupId);
             
@@ -22,7 +22,8 @@ namespace ProjectTwo.Migrations
                 c => new
                     {
                         Id = c.String(nullable: false, maxLength: 128),
-                        Avatar = c.Binary(),
+                        Avatar = c.String(),
+                        DisplayName = c.String(),
                         Email = c.String(maxLength: 256),
                         EmailConfirmed = c.Boolean(nullable: false),
                         PasswordHash = c.String(),
@@ -69,15 +70,16 @@ namespace ProjectTwo.Migrations
                     {
                         Id = c.Int(nullable: false, identity: true),
                         Content = c.String(),
-                        When = c.String(),
-                        Group_GroupId = c.String(maxLength: 128),
+                        When = c.DateTime(nullable: false),
+                        ImageCode = c.String(),
                         Sender_Id = c.String(nullable: false, maxLength: 128),
+                        Group_GroupId = c.String(nullable: false, maxLength: 128),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Groups", t => t.Group_GroupId)
                 .ForeignKey("dbo.AspNetUsers", t => t.Sender_Id, cascadeDelete: true)
-                .Index(t => t.Group_GroupId)
-                .Index(t => t.Sender_Id);
+                .ForeignKey("dbo.Groups", t => t.Group_GroupId, cascadeDelete: true)
+                .Index(t => t.Sender_Id)
+                .Index(t => t.Group_GroupId);
             
             CreateTable(
                 "dbo.AspNetUserRoles",
@@ -120,9 +122,9 @@ namespace ProjectTwo.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.AspNetUserRoles", "RoleId", "dbo.AspNetRoles");
+            DropForeignKey("dbo.Messages", "Group_GroupId", "dbo.Groups");
             DropForeignKey("dbo.AspNetUserRoles", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.Messages", "Sender_Id", "dbo.AspNetUsers");
-            DropForeignKey("dbo.Messages", "Group_GroupId", "dbo.Groups");
             DropForeignKey("dbo.AspNetUserLogins", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.ApplicationUserGroups", "Group_GroupId", "dbo.Groups");
             DropForeignKey("dbo.ApplicationUserGroups", "ApplicationUser_Id", "dbo.AspNetUsers");
@@ -132,8 +134,8 @@ namespace ProjectTwo.Migrations
             DropIndex("dbo.AspNetRoles", "RoleNameIndex");
             DropIndex("dbo.AspNetUserRoles", new[] { "RoleId" });
             DropIndex("dbo.AspNetUserRoles", new[] { "UserId" });
-            DropIndex("dbo.Messages", new[] { "Sender_Id" });
             DropIndex("dbo.Messages", new[] { "Group_GroupId" });
+            DropIndex("dbo.Messages", new[] { "Sender_Id" });
             DropIndex("dbo.AspNetUserLogins", new[] { "UserId" });
             DropIndex("dbo.AspNetUserClaims", new[] { "UserId" });
             DropIndex("dbo.AspNetUsers", "UserNameIndex");

@@ -13,7 +13,7 @@ namespace ProjectTwo.Models
     {
         public ApplicationUser()
         {
-            this.Groups = new HashSet<Group>();
+            this.MemberGroups = new HashSet<MemberGroup>();
             this.Messages = new HashSet<Message>();
         }
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager)
@@ -25,7 +25,7 @@ namespace ProjectTwo.Models
         }
         public string Avatar { get; set; }
         public string DisplayName { get; set; }
-        public virtual ICollection<Group> Groups { get; set; }
+        public virtual ICollection<MemberGroup> MemberGroups { get; set; }
         public virtual ICollection<Message> Messages { get; set; }
     }
 
@@ -37,6 +37,7 @@ namespace ProjectTwo.Models
         }
         public DbSet<Group> Groups { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<MemberGroup> MemberGroups { get; set; }
 
         public static ApplicationDbContext Create()
         {

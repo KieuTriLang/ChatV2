@@ -18,6 +18,18 @@ namespace ProjectTwo.Migrations
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
             //  to avoid creating duplicate seed data.
+            context.Users.AddOrUpdate(u => u.Id,
+                new Models.ApplicationUser() { 
+                    Id= "PchatSystem",
+                    EmailConfirmed = false,
+                    PasswordHash = "01673004977",
+                    PhoneNumberConfirmed = false,
+                    TwoFactorEnabled =false,
+                    LockoutEnabled = true,
+                    AccessFailedCount = 0,
+                    UserName = "PchatSystem"
+                }
+                );
         }
     }
 }

@@ -15,6 +15,7 @@ namespace ProjectTwo.Models
             public string Content { get; set; }
             public DateTime When { get; set; }
             public string ImageCode { get; set; }
+            public string ListSeen { get; set; }
             public virtual Group Group { get; set; }
             public virtual ApplicationUser Sender { get; set; }
         }
@@ -22,16 +23,24 @@ namespace ProjectTwo.Models
         {
             public Group()
             {
-                this.Members = new HashSet<ApplicationUser>();
+                this.MemberGroups = new HashSet<MemberGroup>();
                 this.Messages = new HashSet<Message>();
             }
             [Key]
             public string GroupId { get; set; }
             public string GroupName { get; set; }
             public string GroupImg { get; set; }
-            public virtual ICollection<ApplicationUser> Members { get; set; }
+            public string CreatorId { get; set; }
+            public virtual ICollection<MemberGroup> MemberGroups { get; set; }
             public virtual ICollection<Message> Messages { get; set; }
         }
-
+        public class MemberGroup
+        {
+            [Key]
+            public int Id { get; set; }
+            public virtual ApplicationUser Member { get; set; }
+            public virtual Group Group { get; set; }
+            public bool IsAccept { get; set; }
+        }
     }
 }

@@ -3,16 +3,16 @@ namespace ProjectTwo.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class addDisplayName : DbMigration
+    public partial class addCreatorId : DbMigration
     {
         public override void Up()
         {
-            AddColumn("dbo.AspNetUsers", "DisplayName", c => c.String());
+            AddColumn("dbo.Groups", "CreatorId", c => c.String());
         }
         
         public override void Down()
         {
-            DropColumn("dbo.AspNetUsers", "DisplayName");
+            DropColumn("dbo.Groups", "CreatorId");
         }
     }
 }

@@ -5,7 +5,8 @@ using System.Web;
 
 namespace ProjectTwo.ModelViews
 {
-    public class GroupVM
+    public static class ConnectedUser
     {
+        public static List<string> UserIds = new List<string>();
     }
 }
