@@ -1,0 +1,24 @@
+﻿@using Microsoft.AspNet.Identity
+@model ProjectTwo.Models.ManageDbModels.Group
+<section class="page @Model.GroupId @ViewBag.Active page-invite">
+    <input type="hidden" name="groupId" id="groupId" value="@Model.GroupId" />
+    <div class="content-invite">
+        <div class="image @Model.GroupId">
+            @if (Model.GroupImg != null)
+            {
+                <img src="@Model.GroupImg" />
+            }
+            else
+            {
+                @Model.GroupName.Substring(0, 2);
+            }
+        </div>
+        <p>@Model.GroupName</p>
+        <p class="invite-sentence">Can you join with us?</p>
+        <div class="accept-options">
+            <i class="uil uil-times"></i>
+            <i class="uil uil-check"></i>
+        </div>
+    </div>
+</section>
+

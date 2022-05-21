@@ -1,0 +1,180 @@
+﻿@using Microsoft.AspNet.Identity
+@model IEnumerable<ProjectTwo.Models.ManageDbModels.MemberGroup>
+@{
+    ViewBag.Title = "Pchat";
+}
+@section css{
+    @Styles.Render("~/Content/Site.css")
+}
+@section scripts{
+    @Scripts.Render("~/Scripts/Site.js")
+    @Scripts.Render("~/Scripts/jquery.signalR-2.2.2.min.js")
+    <script src="~/Scripts/handleRealTime.js"></script>
+    <script src="~/signalr/hubs"></script>
+}
+
+<nav class="navbar">
+    @if (Request.IsAuthenticated)
+    {
+        using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <ul class="nav-log">
+                <li style="transform:rotateY(180deg);"><a href="javascript:document.getElementById('logoutForm').submit()"><i class="uil uil-signout"></i></a></li>
+                <li class="user-name">
+                    @{
+                        string userName = @ViewBag.UserName == null ? @User.Identity.Name : @ViewBag.UserName;
+                    }
+                    <a href="/Manage/Index">@userName</a>
+                </li>
+            </ul>
+        }
+    }
+    else
+    {
+        <ul class="nav-log">
+            <li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
+            <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+        </ul>
+    }
+    <div class="search-bar">
+        <label for="searchBar"><i class="uil uil-search"></i></label>
+        <div class="search-box">
+            <input type="text" name="searchBar" id="searchBar" placeholder="Search your friend ..." autocomplete="off" />
+            <ul class="search-result">
+            </ul>
+        </div>
+    </div>
+    <i class="uil uil-sun mode-view"></i>
+    <div class="selection-theme">
+        <div class="default circle selected-theme">
+
+        </div>
+        <div class="list-theme">
+            <div class="default circle ">
+
+            </div>
+            <div class="blue circle ">
+
+            </div>
+            <div class="pastel circle ">
+
+            </div>
+            <div class="orange circle ">
+
+            </div>
+            <div class="purple circle ">
+
+            </div>
+            <div class="teal circle ">
+
+            </div>
+            <div class="pink circle ">
+
+            </div>
+
+        </div>
+    </div>
+    <div class="toggle-btn">
+        <i class="uil uil-comments-alt"></i>
+    </div>
+</nav>
+
+
+@if (User.Identity.IsAuthenticated)
+{
+    <ul class="nav-list">
+
+        @foreach (var item in Model)
+        {
+            @Html.Partial("~/Views/Message/RenderNavItem.cshtml", item.Group)
+        }
+    </ul>
+
+    <header class="page-container">
+        <div class="cover active"><p>Welcome back @User.Identity.Name !</p></div>
+        <span class="overlay"></span>
+        @foreach (var item in Model)
+        {
+            if (item.IsAccept)
+            {
+                @Html.Partial("~/Views/Message/RenderPage.cshtml", item.Group)
+            }
+            else
+            {
+                @Html.Partial("~/Views/Message/RenderPageInvite.cshtml", item.Group)
+            }
+        }
+    </header>
+    <form class="type-bar" id="type-bar">
+        <input type="hidden" name="userId" id="userId" value="@User.Identity.GetUserId()" />
+        <label for="sendImage"><i class="uil uil-image"></i></label>
+        <input type="file" name="image" id="sendImage" style="display:none;" />
+        <input type="text" name="message" id="message" placeholder="Abc" autocomplete="off" />
+        <button type="submit"><i class="uil uil-message"></i></button>
+    </form>
+    <div class="box-alert">
+
+    </div>
+    <div class=" box-confirm box-confirm-leave">
+        <input type="hidden" name="groupId" />
+        <p class="name-group">Hello world</p>
+        <p class="confirm-sentence">Do you wanna leave?</p>
+        <div class="actions">
+            <button class="cancel">Cancel</button>
+            <button class="accept">Accept</button>
+        </div>
+    </div>
+    <div class="box-confirm box-confirm-kick">
+        <input type="hidden" name="groupId" />
+        <input type="hidden" name="personId" />
+        <p class="name-group">Hello world</p>
+        <p class="confirm-sentence">Do you wanna leave?</p>
+        <div class="actions">
+            <button class="cancel">Cancel</button>
+            <button class="accept">Accept</button>
+        </div>
+    </div>
+    <div class="box-confirm box-confirm-host">
+        <input type="hidden" name="groupId" />
+        <input type="hidden" name="personId" />
+        <p class="name-group">Hello world</p>
+        <p class="confirm-sentence">Do you wanna leave?</p>
+        <div class="actions">
+            <button class="cancel">Cancel</button>
+            <button class="accept">Accept</button>
+        </div>
+    </div>
+    <div class="box-add-friend">
+        <input type="hidden" name="groupId" />
+        <i class="uil uil-times"></i>
+        <p class="name-group"></p>
+        <div class="search-bar">
+            <div class="search-box">
+                <input type="text" name="searchFriend" id="searchFriend" placeholder="Search your friend ..." autocomplete="off" />
+                <ul class="search-result active">
+                </ul>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="welcome-page">
+        <p>Welcome to PChat</p>
+        <ul class="circles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+}
+

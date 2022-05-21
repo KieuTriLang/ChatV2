@@ -1,0 +1,35 @@
+﻿@using Microsoft.AspNet.Identity
+@model ProjectTwo.Models.ManageDbModels.Group
+<section class="page @Model.GroupId @ViewBag.Active">
+    <input type="hidden" name="groupId" id="groupId" value="@Model.GroupId" />
+    @Html.Partial("~/Views/Message/RenderHeaderPage.cshtml", Model)
+    <div class="content-chat">
+    </div>
+    <div class="options">
+        <div class="edit-group">
+            <i class="uil uil-pen"></i>
+            <form class="form-edit">
+                <input type="text" id="nameGroup" value="@Model.GroupName" autocomplete="off" />
+                <label for="@Model.GroupId" class="image">
+                    @if (Model.GroupImg != null)
+                    {
+                        <img src="@Model.GroupImg" />
+                    }
+                    else
+                    {
+                        @Model.GroupName.Substring(0, 2);
+                    }
+                </label>
+                <input type="hidden" id="imageData" value="@Model.GroupImg" />
+                <input type="file" id="@Model.GroupId" style="display:none" class="img-group" />
+                <i class="uil uil-check btn-update"></i>
+            </form>
+        </div>
+        <div class="group">
+            <i class="uil uil-users-alt"></i>
+            @Html.Partial("~/Views/Message/RenderMembers.cshtml", Model.MemberGroups)
+        </div>
+
+        <i class="uil uil-sign-out-alt"></i>
+    </div>
+</section>

@@ -1,0 +1,21 @@
+﻿@model ProjectTwo.Models.ManageDbModels.Group
+@using Microsoft.AspNet.Identity
+@{
+    string userId = User.Identity.GetUserId();
+    string IsInvited = !Model.MemberGroups.Where(mg => mg.Member.Id == userId && mg.Group.GroupId == Model.GroupId).FirstOrDefault().IsAccept ? "waiting-accept" : "";
+}
+<li class="link @Model.GroupId @ViewBag.Active @IsInvited">
+    <input type="hidden" name="groupId" value="@Model.GroupId" />
+    <div class="image @Model.GroupId ">
+        @if (Model.GroupImg != null)
+        {
+            <img src="@Model.GroupImg" />
+        }
+        else
+        {
+            @Model.GroupName.Substring(0, 2);
+        }
+    </div>
+    <span class="tooltip">@Model.GroupName</span>
+    <span class="unread-item">1</span>
+</li>

@@ -1,0 +1,58 @@
+﻿@model ProjectTwo.Models.IndexViewModel
+@{
+    ViewBag.Title = "Manage";
+}
+@section css{
+    <link href="~/Content/ManageUser.css" rel="stylesheet" />
+}
+@section scripts{
+    <script src="~/Scripts/ManageUser.js"></script>
+}
+<a class="back-to-home" href="/Home/Index"><i class="uil uil-corner-up-left-alt"></i>Back</a>
+<div class="container">
+    <div class="avatar-user">
+        <div class="image">
+            @if (Model.UserInfo.Avatar != null)
+            {
+                <img src="@Model.UserInfo.Avatar" />
+            }
+            else
+            {
+                @Model.UserInfo.UserName.Substring(0, 2);
+            }
+        </div>
+        <input type="file" id="avatar" style="display:none" />
+        <label for="avatar"><i class="uil uil-pen"></i></label>
+    </div>
+    <ul class="detail-user">
+        <li class="user-name">
+            <span><i class="uil uil-user"></i></span>
+            @{ 
+                string userName = Model.UserInfo.DisplayName != null ? Model.UserInfo.DisplayName : Model.UserInfo.UserName;
+            }
+            <input type="text" value="@userName" disabled="disabled" />
+            <a><i class="uil uil-pen"></i></a>
+        </li>
+        <li>
+            <span><i class="uil uil-at"></i></span>
+            <span>@Model.UserInfo.Email</span>
+        </li>
+        <li>
+            <span><i class="uil uil-key-skeleton"></i></span>
+            <span>*********</span>
+            <a href="/Manage/ChangePassword"><i class="uil uil-pen"></i></a>
+        </li>
+    </ul>
+</div>
+<div class="box-alert">
+    @if (ViewBag.StatusMessage != "")
+    {
+        <div class="alert-item active">
+            <i class="uil uil-check success"></i>
+            <div class="alert-content">
+                <p class="from">System</p>
+                <p class="alert-details">@ViewBag.StatusMessage</p>
+            </div>
+        </div>
+    }
+</div>

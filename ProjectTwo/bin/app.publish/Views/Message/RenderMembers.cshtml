@@ -1,0 +1,70 @@
+﻿@model IEnumerable<ProjectTwo.Models.ManageDbModels.MemberGroup>
+@using Microsoft.AspNet.Identity
+<ul class="members">
+    <li class="member-item add-member"><i class="uil uil-plus"></i>Add</li>
+    @foreach (var member in Model)
+    {
+        if (User.Identity.GetUserId() == Model.First().Group.CreatorId)
+        {
+            <li class="member-item @member.Member.Id">
+                <input type="hidden" name="personId" value="@member.Member.Id" />
+                <div class="image @member.Member.Id">
+                    @if (member.Member.Avatar != null)
+                    {
+                        <img src="@member.Member.Avatar" />
+                    }
+                    else
+                    {
+                        @member.Member.UserName.Substring(0, 2);
+                    }
+                </div>
+                @{
+                    string userName = member.Member.DisplayName != null ? member.Member.DisplayName : member.Member.UserName;
+                }
+                <span class="tooltip">@userName</span>
+                @if (member.Member.Id != Model.First().Group.CreatorId)
+                {
+                    <div class="actions">
+                        <i class="uil uil-award"></i>
+                        <i class="uil uil-minus-circle"></i>
+                    </div>
+                }
+                else
+                {
+                    <div class="host">
+
+                    </div>
+                }
+
+
+
+            </li>
+        }
+        else
+        {
+            <li class="member-item @member.Member.Id">
+                <input type="hidden" name="personId" value="@member.Member.Id" />
+                <div class="image @member.Member.Id">
+                    @if (member.Member.Avatar != null)
+                    {
+                        <img src="@member.Member.Avatar" />
+                    }
+                    else
+                    {
+                        @member.Member.UserName.Substring(0, 2);
+                    }
+                </div>
+                @{
+                    string userName = member.Member.DisplayName != null ? member.Member.DisplayName : member.Member.UserName;
+                }
+                <span class="tooltip">@userName</span>
+                @if (member.Member.Id == Model.First().Group.CreatorId)
+                {
+                    <div class="host">
+                    </div>
+                }
+            </li>
+        }
+    }
+
+</ul>

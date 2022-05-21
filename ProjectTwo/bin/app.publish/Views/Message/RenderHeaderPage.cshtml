@@ -1,0 +1,14 @@
+﻿@model ProjectTwo.Models.ManageDbModels.Group
+<div class="header-chat">
+    <div class="image @Model.GroupId">
+        @if (Model.GroupImg != null)
+        {
+            <img src="@Model.GroupImg" />
+        }
+        else
+        {
+            @Model.GroupName.Substring(0, 2);
+        }
+    </div>
+    <span class="tooltip">@Model.GroupName</span>
+</div>
